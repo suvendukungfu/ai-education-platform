@@ -2,16 +2,6 @@
 
 Welcome to the architectural blueprint of our AI Education Platform. This document moves beyond simple lists to explain the **why** and **how** behind our system's design. We've built this platform not just to serve content, but to actively participate in the student's learning journey.
 
----
-
-## 1. The Core Interaction Model (Use Case Diagram)
-
-At its heart, our platform orchestrates a symphony between three key players: the **Student**, the **Admin**, and our intelligent **AI Engine**.
-
-- **The Student's Journey**: It's not just about logging in. Students come here to _engage_. From generating custom AI notes to challenging themselves with adaptive quizzes, every interaction is designed to deepen understanding.
-- **The AI Engine**: Think of this not as a tool, but as a tireless tutor. It doesn't just "process data"; it _generates insight_. It powers the notes, crafts the questions, and provides the answers that keep students moving forward.
-- **The Admin**: The conductor. They ensure the course material is pristine and the ecosystem remains healthy.
-
 ### Visualizing the Interactions
 
 ![Excalidraw Use Case Diagram](uml/use_case_diagram_excalidraw.png)
@@ -64,6 +54,16 @@ usecaseDiagram
     UC_Exam ..> UC_GenContent : <<include>>
     UC_Chat ..> UC_Answer : <<include>>
 ```
+
+---
+
+## 1. The Core Interaction Model
+
+At its heart, our platform orchestrates a symphony between three key players: the **Student**, the **Admin**, and our intelligent **AI Engine**.
+
+- **The Student's Journey**: It's not just about logging in. Students come here to _engage_. From generating custom AI notes to challenging themselves with adaptive quizzes, every interaction is designed to deepen understanding.
+- **The AI Engine**: Think of this not as a tool, but as a tireless tutor. It doesn't just "process data"; it _generates insight_. It powers the notes, crafts the questions, and provides the answers that keep students moving forward.
+- **The Admin**: The conductor. They ensure the course material is pristine and the ecosystem remains healthy.
 
 ---
 
