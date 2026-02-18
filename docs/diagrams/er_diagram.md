@@ -1,73 +1,62 @@
-# The Filing System (ER Diagram)
+# Entity Relationship Diagram (ERD)
 
-This is how we organize the platform's long-term memory. It's not just a pile of data; it's a connected web of information.
+This diagram details the physical data model for the PostgreSQL database. It emphasizes 3rd Normal Form (3NF) compliance and the use of JSONB for semi-structured data attributes.
 
-### The Connections
+## Schema Highlights
 
-- **Users & History**: We trace every `User` to their `ExamAttempts`. We verify not just _that_ they passed, but _when_ and with what score.
-- **Content Tree**:
-  - A **Course** is the root.
-  - It branches into **Lessons**.
-  - Lessons bloom into **Quizzes** and **AI Notes**.
-- **Analytics**: This is the meta-layer. The `Analytics` table watches the user's interaction with everything else, building a profile of their progress.
+- **Users**: Central identity table with role based discrimination.
+- **Courses/Lessons**: Hierarchical content structure.
+- **AI_Notes**: Stores generated content, strictly linked 1:1 with Lessons.
+- **Exam_Attempts**: Immutable ledger of student assessment performance.
 
-### The Data Map
+## Diagram Source
 
 ```mermaid
 erDiagram
-    %% User Management
+    %% Identity Management
     USERS {
-        UUID id PK
-        string name
-        string email
-        string password_hash
+        UUID id PK "gen_random_uuid()"
+        string email UK "Indexed, Lowercase"
+        string password_hash "Argon2"
         enum role "STUDENT, ADMIN, INSTRUCTOR"
         timestamp created_at
+        timestamp updated_at
     }
 
-    %% Course Management
+    %% Content Management
     COURSES {
         UUID id PK
         string title
         text description
+        boolean is_published "Index"
         timestamp created_at
     }
 
     LESSONS {
         UUID id PK
-        UUID course_id FK
-        string topic
-        text content
+        UUID course_id FK "Index"
+        string title
+        text content_url "S3 Object Key"
         int order_index
     }
 
+    %% AI Artifacts
     AI_NOTES {
         UUID id PK
-        UUID lesson_id FK
-        text generated_content
-        timestamp created_at
+        UUID lesson_id FK "Unique Constraint (1:1)"
+        text summary_markdown
+        jsonb key_concepts "Structured array"
+        timestamp generated_at
     }
 
-    %% Assessments
-    QUIZZES {
-        UUID id PK
-        UUID lesson_id FK
-        string title
-    }
-
-    QUESTIONS {
-        UUID id PK
-        UUID quiz_id FK
-        text question_text
-        text answer
-        json options "Optional multiple choice"
-    }
-
+    %% Assessment Domain
     EXAMS {
         UUID id PK
         UUID course_id FK
         string title
-        int duration_minutes
+        int duration_seconds
+        int passing_score_percent
+        jsonb config "Adaptive settings"
     }
 
     EXAM_ATTEMPTS {
@@ -75,29 +64,15 @@ erDiagram
         UUID exam_id FK
         UUID user_id FK
         int score
-        boolean passed
-        timestamp attempted_at
-    }
-
-    %% Analytics
-    ANALYTICS {
-        UUID id PK
-        UUID user_id FK
-        json progress_data
-        timestamp last_updated
+        timestamptz started_at
+        timestamptz completed_at
+        jsonb answer_sheet "User responses snapshot"
     }
 
     %% Relationships
-    USERS ||--o{ EXAM_ATTEMPTS : takes
-    USERS ||--o{ ANALYTICS : has
-
-    COURSES ||--|{ LESSONS : contains
-    COURSES ||--o{ EXAMS : has
-
-    LESSONS ||--o{ QUIZZES : has
+    COURSES ||--|{ LESSONS : owns
     LESSONS ||--o| AI_NOTES : generates
-
-    QUIZZES ||--|{ QUESTIONS : contains
-
-    EXAMS ||--|{ EXAM_ATTEMPTS : results_in
+    COURSES ||--o{ EXAMS : contains
+    EXAMS ||--|{ EXAM_ATTEMPTS : logs
+    USERS ||--|{ EXAM_ATTEMPTS : performs
 ```
