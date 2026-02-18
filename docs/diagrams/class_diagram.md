@@ -1,4 +1,14 @@
-# Class Diagram
+# 🧬 The System DNA (Class Diagram)
+
+If you looked at our code under a microscope, this is the genetic structure you would see. It defines _what_ things are and _how_ they relate to each other.
+
+### The Genetic Code 🔬
+
+- **Inheritance (The Lineage)**: Just as children inherit traits from parents, our `Student` and `Admin` classes inherit core identities from the `User` class.
+- **Polymorphism (The Shapeshifters)**: Our `AIService` is a chameleon. It can morph into a `NotesGenerator`, a `QuizGenerator`, or an `ExamGenerator` depending on what the user needs.
+- **Composition (The Building Blocks)**: A `Course` isn't just a title; it is _composed_ of many `Lessons`. Without lessons, a course is just an empty shell.
+
+### The Blueprint
 
 ```mermaid
 classDiagram

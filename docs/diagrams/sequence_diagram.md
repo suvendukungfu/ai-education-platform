@@ -1,4 +1,16 @@
-# Sequence Diagram
+# 🔄 The Journey of a Request (Sequence Diagram)
+
+This diagram tells the story of a single "Study Session". It traces the data as it hops from the student's screen, through our security gates, into the brain of the AI, and safely into the database.
+
+### The Narrative Arc 📖
+
+- **Scene 1: The Ask.** The student wants to learn. They click "Generate Summaries".
+- **Scene 2: The Logic.** The Backend validates who they are (Security) and what they want.
+- **Scene 3: The Magic.** The AI Engine wakes up, reads the lesson context, and writes a perfect summary.
+- **Scene 4: The Archive.** We save this new knowledge in the Database so it's not lost.
+- **Scene 5: The Reveal.** The summary appears instantly on the student's screen.
+
+### The Visual Flow
 
 ```mermaid
 sequenceDiagram
