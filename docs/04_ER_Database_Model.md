@@ -11,6 +11,8 @@ Data is the lifeblood of our platform. We've designed a normalized, relational s
 
 ### Entity Relationship Diagram (ERD)
 
+![Excalidraw ER Diagram](../docs/er-diagram/er_diagram_excalidraw.png)
+
 ```mermaid
 erDiagram
     %% User Management

@@ -17,6 +17,8 @@ Let's trace the path of a dedicated student. It's a journey that starts with cur
 
 ### The Flow of Interaction
 
+![Excalidraw Sequence Diagram](../docs/behavioral/sequence_diagram_excalidraw.png)
+
 ```mermaid
 sequenceDiagram
     autonumber
