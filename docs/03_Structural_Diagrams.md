@@ -2,16 +2,6 @@
 
 Great software isn't just written; it's engineered. For the AI Education Platform, we've adhered to strict **Object-Oriented Programming (OOP)** principles to ensure our code is cleaner, scalable, and easier to maintain.
 
----
-
-## 1. Class Hierarchy (Class Diagram)
-
-This isn't just a list of classes. It's a carefully structured family tree of objects.
-
-- **Inheritance (The "Is-A" Relationship)**: We don't repeat code for `Student` and `Admin`. Both inherit from a robust `User` class, sharing core identity logic while keeping their unique powers separate.
-- **Polymorphism (The "Acts-Like" Relationship)**: Our AI is versatile. Whether generating **Notes**, **Quizzes**, or **Exams**, the system treats them all as an `AIService`. This means we can add a "Flashcard Generator" tomorrow without breaking the existing code.
-- **Encapsulation**: Data is sacred. We lock down sensitive fields (like `passwordHash`) and only expose safe methods to interact with them.
-
 ### The Blueprint
 
 ![Excalidraw Class Diagram](../docs/structural/class_diagram_excalidraw.png)
@@ -110,6 +100,16 @@ classDiagram
     Course "1" *-- "*" Exam : Includes
     Student "1" --> "*" Exam : Attempts
 ```
+
+---
+
+## 1. Class Hierarchy (The "Why")
+
+This isn't just a list of classes. It's a carefully structured family tree of objects.
+
+- **Inheritance (The "Is-A" Relationship)**: We don't repeat code for `Student` and `Admin`. Both inherit from a robust `User` class, sharing core identity logic while keeping their unique powers separate.
+- **Polymorphism (The "Acts-Like" Relationship)**: Our AI is versatile. Whether generating **Notes**, **Quizzes**, or **Exams**, the system treats them all as an `AIService`. This means we can add a "Flashcard Generator" tomorrow without breaking the existing code.
+- **Encapsulation**: Data is sacred. We lock down sensitive fields (like `passwordHash`) and only expose safe methods to interact with them.
 
 ---
 

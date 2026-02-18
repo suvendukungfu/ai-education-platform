@@ -2,19 +2,6 @@
 
 Static structures are important, but software really comes alive in its _behavior_. This document captures the dynamic stories of our users—how they move through the system, make decisions, and evolve their learning.
 
----
-
-## 1. The Learning Journey (Sequence Diagram)
-
-Let's trace the path of a dedicated student. It's a journey that starts with curiosity and ends with mastery.
-
-**The Narrative:**
-
-1.  **Discovery**: The student logs in and selects a complex topic (e.g., "Machine Learning").
-2.  **Synthesis**: Overwhelmed by raw content, they ask the AI to **Generate Notes**. The system crunches the data and serves up a concise summary.
-3.  **Practice**: Feeling confident, they generate a **Quiz**. The AI creates questions _on the fly_ based on exactly what they just studied.
-4.  **Validation**: They take an **Exam**, and immediately, the system updates their **Analytics**. They don't just see a score; they see growth.
-
 ### The Flow of Interaction
 
 ![Excalidraw Sequence Diagram](../docs/behavioral/sequence_diagram_excalidraw.png)
@@ -74,6 +61,19 @@ sequenceDiagram
     API-->>UI: Return Exam Result & New Analytics
     UI-->>Student: Show Scorecard
 ```
+
+---
+
+## 1. The Learning Journey
+
+Let's trace the path of a dedicated student. It's a journey that starts with curiosity and ends with mastery.
+
+**The Narrative:**
+
+1.  **Discovery**: The student logs in and selects a complex topic (e.g., "Machine Learning").
+2.  **Synthesis**: Overwhelmed by raw content, they ask the AI to **Generate Notes**. The system crunches the data and serves up a concise summary.
+3.  **Practice**: Feeling confident, they generate a **Quiz**. The AI creates questions _on the fly_ based on exactly what they just studied.
+4.  **Validation**: They take an **Exam**, and immediately, the system updates their **Analytics**. They don't just see a score; they see growth.
 
 ---
 
