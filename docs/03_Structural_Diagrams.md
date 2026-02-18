@@ -14,6 +14,8 @@ This isn't just a list of classes. It's a carefully structured family tree of ob
 
 ### The Blueprint
 
+![Excalidraw Class Diagram](../docs/structural/class_diagram_excalidraw.png)
+
 ```mermaid
 classDiagram
     %% Abstract & Interface Definitions
