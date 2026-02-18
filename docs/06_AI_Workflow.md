@@ -1,31 +1,28 @@
-# AI Workflow & RAG Pipeline
+# 🧠 The AI Engine: How It "Thinks"
 
-## Retrieval-Augmented Generation (RAG) Architecture
+This isn't just a wrapper around ChatGPT. We've built a sophisticated **Retrieval-Augmented Generation (RAG)** pipeline.
 
-This document details how the platform delivers accurate, context-aware AI responses using RAG.
-
-### 1. Ingestion Pipeline (The "Learning" Phase)
-
-When a student uploads a document (PDF, DOCX, TXT):
-
-1.  **Text Extraction**: OCR/Text parsing to get raw string content.
-2.  **Chunking**: Split text into semantic chunks (e.g., 500 tokens with 50 token overlap).
-3.  **Embedding**: Pass chunks to an Embedding Model (e.g., OpenAI `text-embedding-3-small` or HuggingFace local models).
-4.  **Indexing**: Store vectors + metadata (Page #, Source ID) in Vector Database.
-
-### 2. Retrieval Pipeline (The "Answering" Phase)
-
-When a student asks a question:
-
-1.  **Query Embedding**: Convert user question into a vector.
-2.  **Semantic Search**: Query Vector DB for "Nearest Neighbors" (most relevant chunks).
-3.  **Context Assembly**: Combine User Question + Relevant Chunks into a systematic prompt.
-4.  **LLM Generation**: Send prompt to LLM (GPT-4o / Claude 3.5 Sonnet).
-5.  **Response**: Stream answer back to frontend.
+Why? Because standard AI models can hallucinate. Our system is grounded in **your** data. It studies the course material so it can answer questions accurately, citing specific pages and concepts.
 
 ---
 
-### AI Pipeline Diagram
+## Phase 1: The "Learning" Phase (Ingestion)
+
+Before the AI can teach, it must learn. When a new course document is added:
+
+1.  **Read**: We extract text from PDFs, preserving structure.
+2.  **Chunk**: We break the text into bite-sized "thoughts" (chunks).
+3.  **Memorize**: We convert these chunks into mathematical vectors (embeddings) and store them in a **Vector Database**. This acts as the AI's long-term memory for that specific course.
+
+## Phase 2: The "Teaching" Phase (Retrieval & Answering)
+
+When a student asks, _"What is the core principle of Thermodynamics?"_:
+
+1.  **Recall**: We don't just guess. We search our Vector Database for the most relevant "thoughts" (chunks) related to Thermodynamics from the uploaded textbooks.
+2.  **Contextualize**: We hand those specific book excerpts to the LLM (Large Language Model) along with the student's question.
+3.  **Answer**: The LLM acts as a synthesizer. It reads the excerpts and formulates a clear, concise answer based _only_ on the provided facts.
+
+### The RAG Pipeline Visualized
 
 ```mermaid
 sequenceDiagram
@@ -36,26 +33,26 @@ sequenceDiagram
     participant VectorDB
     participant LLM as "LLM (OpenAI/Anthropic)"
 
-    note over User, Frontend: INGESTION PHASE (Upload)
+    note over User, Frontend: INGESTION: The AI "Reads" the Book
     User->>Frontend: Upload "Lecture1.pdf"
     Frontend->>AI_Service: Process Document
     AI_Service->>AI_Service: Extract Text & Chunk
     AI_Service->>LLM: Generate Embeddings (Batch)
     LLM-->>AI_Service: Return Vectors
-    AI_Service->>VectorDB: Upsert Vectors (Chunk ID + Text)
+    AI_Service->>VectorDB: Upsert Vectors (Memorize Concepts)
 
-    note over User, Frontend: CONVERSATION PHASE (Chat)
+    note over User, Frontend: CONVERSATION: The AI "Teaches"
     User->>Frontend: "Explain the main concept of Lecture 1"
     Frontend->>AI_Service: POST /chat/query
     AI_Service->>LLM: Embed User Query
     LLM-->>AI_Service: Return Query Vector
 
-    AI_Service->>VectorDB: Search (KNN / Cosine Similarity)
+    AI_Service->>VectorDB: Search Memory (Find Relevant Pages)
     VectorDB-->>AI_Service: Return Top 5 Relevant Chunks
 
-    AI_Service->>AI_Service: Construct Prompt (System + Context + Question)
+    AI_Service->>AI_Service: Construct Prompt (System + Book Excerpts + Question)
 
-    AI_Service->>LLM: Chat Completion (Prompt)
+    AI_Service->>LLM: Answer the Student
     LLM-->>AI_Service: Stream "The main concept is..."
     AI_Service-->>Frontend: Stream Response
     Frontend-->>User: Display Answer
@@ -63,20 +60,10 @@ sequenceDiagram
 
 ---
 
-### Prompt Engineering Strategy
+## 🛡️ Anti-Hallucination Strategy
 
-**System Prompt Template:**
+We explicitly instruct our AI:
 
-> You are an expert academic tutor. You answer questions based ONLY on the provided context.
->
-> **Context:**
-> {{RETRIEVED_CHUNKS}}
->
-> **Question:**
-> {{USER_QUERY}}
->
-> **Instructions:**
->
-> 1. If the answer is found in the context, be concise and cite the source (e.g., "According to page 12...").
-> 2. If the answer is NOT in the context, say "I cannot find this information in the provided materials."
-> 3. Do not Hallucinate.
+> _"You are an expert academic tutor. You answer questions based **ONLY** on the provided context visuals. If the answer isn't in the book, admit you don't know rather than making it up."_
+
+This builds trust. Students know the answer comes from their curriculum, not random internet data.
