@@ -2,98 +2,110 @@
 
 ## Class Diagram
 
-**Classes:**
+This diagram visualizes the Object-Oriented Design (OOP) of the backend services.
 
-- User
-- StudentProfile
-- Course
-- Lesson
-- AINotes
-- Quiz
-- Question
-- Exam
-- ExamAttempt
-- AnalyticsReport
+**Key Design Patterns:**
+
+- **Inheritance**: `User` is the base class for `Student` and `Admin`.
+- **Abstraction**: `AIService` defines the contract for AI operations.
+- **Polymorphism**: `NotesGenerator`, `QuizGenerator`, and `ExamGenerator` implement `AIService`.
+- **Encapsulation**: Private fields (denoted by `-`) protected by public methods.
 
 ### Diagram
 
 ```mermaid
 classDiagram
+    %% Abstract & Interface Definitions
+    class AIService {
+        <<interface>>
+        +generate(input: String): JSON
+    }
+
+    class BaseEntity {
+        <<abstract>>
+        +UUID id
+        +Date createdAt
+        +Date updatedAt
+    }
+
+    %% User Hierarchy (Inheritance)
     class User {
-        +UUID id
-        +String name
-        +String email
-        +String passwordHash
-        +Role role
+        -String name
+        -String email
+        -String passwordHash
         +login()
-        +register()
+        +logout()
     }
 
-    class StudentProfile {
-        +UUID userId
-        +String learningStyle
-        +Map progress
-        +updateProgress()
+    class Student {
+        -StudentProfile profile
+        +enrollCourse(courseId)
+        +viewProgress()
     }
 
+    class Admin {
+        -String department
+        +createCourse()
+        +manageUsers()
+    }
+
+    User --|> BaseEntity
+    Student --|> User
+    Admin --|> User
+
+    %% Core Domain Models
     class Course {
-        +UUID id
-        +String title
-        +String description
-        +List~Lesson~ lessons
-        +addLesson()
-        +getProgress()
+        -String title
+        -String description
+        +addLesson(Lesson)
+        +getModules()
     }
 
     class Lesson {
-        +UUID id
-        +String topic
-        +String content
-        +generateNotes()
+        -String topic
+        -String content
+        +generateAIContent()
     }
 
     class AINotes {
-        +UUID id
-        +String summary
-        +List~String~ keyPoints
+        -String summary
+        -List~String~ keyPoints
     }
 
     class Quiz {
-        +UUID id
-        +List~Question~ questions
-        +generate()
-    }
-
-    class Question {
-        +UUID id
-        +String text
-        +List~String~ options
-        +String correctAnswer
+        -List~Question~ questions
+        +evaluate(answers)
     }
 
     class Exam {
-        +UUID id
-        +Course course
-        +int durationMinutes
-        +evaluate()
+        -int duration
+        +start()
+        +submit()
     }
 
-    class ExamAttempt {
-        +UUID id
-        +User student
-        +Exam exam
-        +int score
-        +Date attemptedAt
+    %% AI Implementation (Polymorphism)
+    class NotesGenerator {
+        +generate(content): Notes
     }
 
-    User "1" -- "1" StudentProfile
-    Course "1" *-- "*" Lesson
-    Lesson "1" --> "0..1" AINotes
-    Lesson "1" -- "*" Quiz
-    Quiz "1" *-- "*" Question
-    Course "1" -- "*" Exam
-    User "1" -- "*" ExamAttempt
-    Exam "1" -- "*" ExamAttempt
+    class QuizGenerator {
+        +generate(topic): Quiz
+    }
+
+    class ExamGenerator {
+        +generate(course): Exam
+    }
+
+    NotesGenerator ..|> AIService
+    QuizGenerator ..|> AIService
+    ExamGenerator ..|> AIService
+
+    %% Relationships
+    Course "1" *-- "*" Lesson : Contains
+    Lesson "1" --> "1" AINotes : Generates
+    Lesson "1" *-- "*" Quiz : Has
+    Course "1" *-- "*" Exam : Includes
+    Student "1" --> "*" Exam : Attempts
 ```
 
 ---

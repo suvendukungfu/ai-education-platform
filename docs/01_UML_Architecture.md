@@ -2,11 +2,13 @@
 
 ## Use Case Diagram
 
+This diagram outlines the core interactions for the AI Education Platform stakeholders.
+
 **Actors:**
 
-- Student
-- Admin
-- AI Engine
+- **Student**: Primary user engaging with content and AI.
+- **Admin**: Platform manager for courses and users.
+- **AI Engine**: System actor performing intelligent tasks.
 
 ### Diagram
 
@@ -17,47 +19,46 @@ usecaseDiagram
     actor AI_Engine as "AI Engine"
 
     package "AI Education Platform" {
-        usecase "Register/Login" as UC1
-        usecase "View Courses" as UC2
-        usecase "Upload Documents" as UC3
-        usecase "Request AI Notes" as UC4
-        usecase "Chat with Tutor" as UC5
-        usecase "Take Quiz" as UC6
-        usecase "Take Exam" as UC7
-        usecase "View Analytics" as UC8
-        usecase "Manage Courses" as UC9
-        usecase "View System Reports" as UC10
-        usecase "Configure AI Settings" as UC11
-        usecase "Process Documents" as UC12
-        usecase "Generate Notes" as UC13
-        usecase "Conduct Chat Session" as UC14
-        usecase "Generate Quizzes/Exams" as UC15
+        usecase "Register/Login" as UC_Auth
+        usecase "Select Course/Topic" as UC_Browse
+        usecase "Generate AI Notes" as UC_Notes
+        usecase "Create Quiz" as UC_Quiz
+        usecase "Attempt Exam" as UC_Exam
+        usecase "Chat with AI Tutor" as UC_Chat
+        usecase "View Analytics" as UC_Analytics
+
+        usecase "Manage Courses" as UC_ManageCourses
+        usecase "Manage Lessons" as UC_ManageLessons
+        usecase "Monitor Users" as UC_Monitor
+
+        usecase "Generate Content" as UC_GenContent
+        usecase "Answer Queries" as UC_Answer
     }
 
-    Student --> UC1
-    Student --> UC2
-    Student --> UC3
-    Student --> UC4
-    Student --> UC5
-    Student --> UC6
-    Student --> UC7
-    Student --> UC8
+    %% Student Relationships
+    Student --> UC_Auth
+    Student --> UC_Browse
+    Student --> UC_Notes
+    Student --> UC_Quiz
+    Student --> UC_Exam
+    Student --> UC_Chat
+    Student --> UC_Analytics
 
-    Admin --> UC1
-    Admin --> UC9
-    Admin --> UC10
-    Admin --> UC11
+    %% Admin Relationships
+    Admin --> UC_Auth
+    Admin --> UC_ManageCourses
+    Admin --> UC_ManageLessons
+    Admin --> UC_Monitor
 
-    AI_Engine --> UC12
-    AI_Engine --> UC13
-    AI_Engine --> UC14
-    AI_Engine --> UC15
+    %% AI Engine Relationships
+    AI_Engine --> UC_GenContent
+    AI_Engine --> UC_Answer
 
-    UC4 ..> UC13 : <<include>>
-    UC4 ..> UC12 : <<include>>
-    UC5 ..> UC14 : <<include>>
-    UC6 ..> UC15 : <<include>>
-    UC7 ..> UC15 : <<include>>
+    %% Dependencies (Includes)
+    UC_Notes ..> UC_GenContent : <<include>>
+    UC_Quiz ..> UC_GenContent : <<include>>
+    UC_Exam ..> UC_GenContent : <<include>>
+    UC_Chat ..> UC_Answer : <<include>>
 ```
 
 ---
