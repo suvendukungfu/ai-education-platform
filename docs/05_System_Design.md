@@ -1,4 +1,4 @@
-# 🚀 High-Scalability Design: Building for Millions
+# High-Scalability Design: Building for Millions
 
 It is one thing to build an app that works for ten users. It is an entirely different engineering challenge to build one that works for **ten million**. This document outlines how we constructed the AI Education Platform to be robust, resilient, and infinitely scalable.
 
@@ -58,7 +58,7 @@ graph TD
 
 ---
 
-## ⚡️ Example: The Lifecycle of a "Heavy" Request
+## Example: The Lifecycle of a "Heavy" Request
 
 What happens when a student uploads a massive textbook?
 

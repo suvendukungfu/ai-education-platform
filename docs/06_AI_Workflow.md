@@ -1,4 +1,4 @@
-# 🧠 The AI Engine: How It "Thinks"
+# The AI Engine: How It "Thinks"
 
 This isn't just a wrapper around ChatGPT. We've built a sophisticated **Retrieval-Augmented Generation (RAG)** pipeline.
 
@@ -43,7 +43,8 @@ sequenceDiagram
 
     note over User, Frontend: CONVERSATION: The AI "Teaches"
     User->>Frontend: "Explain the main concept of Lecture 1"
-    Frontend->>AI_Service: POST /chat/query
+    Frontend->>Frontend: POST /chat/query
+    Frontend->>AI_Service: Request Answer
     AI_Service->>LLM: Embed User Query
     LLM-->>AI_Service: Return Query Vector
 
@@ -60,7 +61,7 @@ sequenceDiagram
 
 ---
 
-## 🛡️ Anti-Hallucination Strategy
+## Anti-Hallucination Strategy
 
 We explicitly instruct our AI:
 

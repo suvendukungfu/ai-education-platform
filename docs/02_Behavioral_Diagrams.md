@@ -1,4 +1,4 @@
-# 🎬 Behavioral Flows: The Student Experience
+# Behavioral Flows: The Student Experience
 
 Static structures are important, but software really comes alive in its _behavior_. This document captures the dynamic stories of our users—how they move through the system, make decisions, and evolve their learning.
 

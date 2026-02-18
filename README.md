@@ -1,4 +1,4 @@
-# 🎓 AI Education Platform
+# AI Education Platform
 
 <div align="center">
 
@@ -9,31 +9,31 @@
 **The Next-Generation Learning Management System.**  
 _Built for the AI era, designed for the human mind._
 
-[Vision](#-vision) • [Core Features](#-core-features) • [Architecture](#-architecture) • [Quick Start](#-quick-start)
+[Vision](#vision) • [Core Features](#core-features) • [Architecture](#architecture) • [Quick Start](#quick-start)
 
 </div>
 
 ---
 
-## 🚀 Vision
+## Vision
 
 We are building the **AI Education Platform** because traditional LMS software is stuck in 2010. It’s static, clunky, and passive.
 
-Our goal is simple: **Active Learning**. By embedding Large Language Models (LLMs) directly into the study workflow, we transform static PDFs into interactive conversations. Students don't just read; they quiz themselves, summarizing complex topics, and get instant feedback—all in real-time.
+Our goal is simple: **Active Learning**. By embedding Large Language Models (LLMs) directly into the study workflow, we transform static PDFs into interactive conversations. Students don't just read; they quiz themselves, summarize complex topics, and get instant feedback—all in real-time.
 
 ---
 
-## ✨ Core Features
+## Core Features
 
-- **📚 Intelligent Study Materials**: Don't just upload PDFs. Talk to them. Our RAG pipeline allows students to query their textbooks as if they were chatting with a professor.
-- **🤖 Always-On Tutor**: A context-aware assistant that knows exactly _which_ lesson you are studying and helps you get unblocked instantly.
-- **📝 Dynamic Quizzing**: The system generates unique quizzes every time, focusing on your weak spots (Adaptive Learning).
-- **📊 Insightful Analytics**: We track concept mastery, not just login times. Students can see exactly where they need to improve.
-- **🔒 Enterprise-Grade Security**: Role-based access control (RBAC) and encrypted data storage ensure privacy is never compromised.
+- **Intelligent Study Materials**: Don't just upload PDFs. Talk to them. Our RAG pipeline allows students to query their textbooks as if they were chatting with a professor.
+- **Always-On Tutor**: A context-aware assistant that knows exactly _which_ lesson you are studying and helps you get unblocked instantly.
+- **Dynamic Quizzing**: The system generates unique quizzes every time, focusing on your weak spots (Adaptive Learning).
+- **Insightful Analytics**: We track concept mastery, not just login times. Students can see exactly where they need to improve.
+- **Enterprise-Grade Security**: Role-based access control (RBAC) and encrypted data storage ensure privacy is never compromised.
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 We chose a stack that balances developer velocity with massive scalability.
 
@@ -48,7 +48,7 @@ We chose a stack that balances developer velocity with massive scalability.
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 We didn't just throw this together. It's engineered to handle load.
 
@@ -56,7 +56,7 @@ We didn't just throw this together. It's engineered to handle load.
 
 Traffic flows through our Load Balancer into a robust API Gateway. From there, it's routed to specialized microservices.
 
-> 📖 **Deep Dive**: Check out [System Design](docs/05_System_Design.md) for the full breakdown.
+> **Deep Dive**: Check out [System Design](docs/05_System_Design.md) for the full breakdown.
 
 ```mermaid
 graph TD
@@ -74,11 +74,11 @@ graph TD
 
 How does it "know" the course material? It uses **Retrieval-Augmented Generation**. We ingest documents, chunk them, embedding them, and then retrieve relevant context for every user query.
 
-> 🧠 **Learn More**: Read [AI Workflow](docs/06_AI_Workflow.md) to understand the brain of the operation.
+> **Learn More**: Read [AI Workflow](docs/06_AI_Workflow.md) to understand the brain of the operation.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```bash
 ai-education-platform/
@@ -94,7 +94,7 @@ ai-education-platform/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 Ready to run this locally? Let's go.
 
@@ -125,12 +125,12 @@ Ready to run this locally? Let's go.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We love open source. If you want to fix a bug or add a shiny new feature, check out [CONTRIBUTING.md](CONTRIBUTING.md).
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
 
 ---
 
 <div align="center">
-Built with ❤️ by the AI Education Team
+Built by the AI Education Team
 </div>

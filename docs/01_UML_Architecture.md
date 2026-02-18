@@ -1,4 +1,4 @@
-# 🏗️ AI Education Platform: Architectural Breakdown
+# AI Education Platform: Architectural Breakdown
 
 Welcome to the architectural blueprint of our AI Education Platform. This document moves beyond simple lists to explain the **why** and **how** behind our system's design. We've built this platform not just to serve content, but to actively participate in the student's learning journey.
 
