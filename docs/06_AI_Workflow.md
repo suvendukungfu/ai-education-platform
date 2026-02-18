@@ -1,70 +1,75 @@
-# The AI Engine: How It "Thinks"
+# AI Workflow: Retrieval-Augmented Generation (RAG)
 
-This isn't just a wrapper around ChatGPT. We've built a sophisticated **Retrieval-Augmented Generation (RAG)** pipeline.
+This document details the implementation of the RAG pipeline, explaining how we ground Large Language Models (LLMs) in our proprietary course data to provide accurate, context-aware responses.
 
-Why? Because standard AI models can hallucinate. Our system is grounded in **your** data. It studies the course material so it can answer questions accurately, citing specific pages and concepts.
+## Why RAG?
 
----
+Standard LLMs (GPT-4, Claude) are trained on general internet data. They lack knowledge of our specific private course content and can confidently "hallucinate" incorrect information. RAG mitigates this by retrieving relevant facts from our database and injecting them into the LLM's context window before it generates an answer.
 
-## Phase 1: The "Learning" Phase (Ingestion)
+## The Pipeline
 
-Before the AI can teach, it must learn. When a new course document is added:
+The workflow consists of two distinct phases: **Ingestion (Indexing)** and **Inference (Retrieval & Generation)**.
 
-1.  **Read**: We extract text from PDFs, preserving structure.
-2.  **Chunk**: We break the text into bite-sized "thoughts" (chunks).
-3.  **Memorize**: We convert these chunks into mathematical vectors (embeddings) and store them in a **Vector Database**. This acts as the AI's long-term memory for that specific course.
+### Phase 1: Ingestion (Offline Processing)
 
-## Phase 2: The "Teaching" Phase (Retrieval & Answering)
+This process converts unstructured files (PDFs, Markdown) into structured vector search indices.
 
-When a student asks, _"What is the core principle of Thermodynamics?"_:
+1.  **Extraction**: Text is extracted from binaries using OCR/Parsing tools.
+2.  **Chunking**: Text is split into semantic segments (e.g., 500 tokens with 50-token overlap). Overlap is crucial to maintain context across boundaries.
+3.  **Embedding**: Each chunk is passed to an embedding model (e.g., `text-embedding-3-small`) to generate a dense vector representation.
+4.  **Indexing**: Vectors are upserted into Qdrant/Pinecone with metadata (CourseID, LessonID).
 
-1.  **Recall**: We don't just guess. We search our Vector Database for the most relevant "thoughts" (chunks) related to Thermodynamics from the uploaded textbooks.
-2.  **Contextualize**: We hand those specific book excerpts to the LLM (Large Language Model) along with the student's question.
-3.  **Answer**: The LLM acts as a synthesizer. It reads the excerpts and formulates a clear, concise answer based _only_ on the provided facts.
+### Phase 2: Inference (Runtime)
 
-### The RAG Pipeline Visualized
+When a user asks a question or requests notes, the following real-time sequence occurs.
+
+### Sequence Diagram: The RAG Lifecycle
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User
-    participant Frontend
-    participant AI_Service
-    participant VectorDB
-    participant LLM as "LLM (OpenAI/Anthropic)"
+    participant API as API Service
+    participant Embed as Embedding Model
+    participant VectorDB as Vector Store
+    participant Context as Context Builder
+    participant LLM as LLM (Generation)
 
-    note over User, Frontend: INGESTION: The AI "Reads" the Book
-    User->>Frontend: Upload "Lecture1.pdf"
-    Frontend->>AI_Service: Process Document
-    AI_Service->>AI_Service: Extract Text & Chunk
-    AI_Service->>LLM: Generate Embeddings (Batch)
-    LLM-->>AI_Service: Return Vectors
-    AI_Service->>VectorDB: Upsert Vectors (Memorize Concepts)
+    Note over API, VectorDB: STEP 1: RETRIEVAL
+    User->>API: Query: "Explain Photosynthesis"
+    API->>Embed: Create Vector(Query)
+    Embed-->>API: [0.12, 0.45, ... 0.98]
+    API->>VectorDB: Search(QueryVector, filter={course_id: 123})
+    VectorDB-->>API: Return Top-K Semantic Matches (Chunks)
 
-    note over User, Frontend: CONVERSATION: The AI "Teaches"
-    User->>Frontend: "Explain the main concept of Lecture 1"
-    Frontend->>Frontend: POST /chat/query
-    Frontend->>AI_Service: Request Answer
-    AI_Service->>LLM: Embed User Query
-    LLM-->>AI_Service: Return Query Vector
-
-    AI_Service->>VectorDB: Search Memory (Find Relevant Pages)
-    VectorDB-->>AI_Service: Return Top 5 Relevant Chunks
-
-    AI_Service->>AI_Service: Construct Prompt (System + Book Excerpts + Question)
-
-    AI_Service->>LLM: Answer the Student
-    LLM-->>AI_Service: Stream "The main concept is..."
-    AI_Service-->>Frontend: Stream Response
-    Frontend-->>User: Display Answer
+    Note over API, LLM: STEP 2: GENERATION
+    API->>Context: Construct Prompt (System Prompt + Chunks + Query)
+    Context-->>API: Formatted Prompt
+    API->>LLM: Completion(Prompt)
+    LLM-->>API: Streamed Response
+    API-->>User: "Based on the lesson, Photosynthesis is..."
 ```
 
----
+## Prompt Engineering Strategy
 
-## Anti-Hallucination Strategy
+We use structured system prompts to enforce constraints.
 
-We explicitly instruct our AI:
+**Template Structure:**
 
-> _"You are an expert academic tutor. You answer questions based **ONLY** on the provided context visuals. If the answer isn't in the book, admit you don't know rather than making it up."_
+```text
+ROLE: You are an expert academic tutor.
+CONTEXT: Use ONLY the provided context snippets below to answer the user's question.
+CONSTRAINT: If the answer is not found in the context, explicitly state "I cannot answer this based on the provided material." Do not use outside knowledge.
 
-This builds trust. Students know the answer comes from their curriculum, not random internet data.
+CONTEXT_SNIPPETS:
+{retrieved_chunks}
+
+USER_QUERY:
+{user_question}
+```
+
+## Optimization Techniques
+
+- **Hybrid Search**: Combining Dense Vector search (semantic) with Sparse Keyword search (BM25) to catch specific terminology that vector models might miss.
+- **Re-ranking**: Retrieving a larger set of candidates (e.g., Top-50) and using a Cross-Encoder model (Cohere Rerank) to strictly order them by relevance before sending to the LLM.
+- **Result Caching**: Hashing the user query and storing the LLM response in Redis. Identical queries bypass the expensive LLM call entirely.

@@ -1,136 +1,156 @@
 # AI Education Platform
 
-<div align="center">
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/build-passing-success.svg)]()
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Platform](https://img.shields.io/badge/platform-web%20%7C%20mobile-lightgrey)]()
+**A scalable, microservices-based Learning Management System illustrating the integration of Large Language Models (LLMs) into educational workflows.**
 
-**The Next-Generation Learning Management System.**  
-_Built for the AI era, designed for the human mind._
+## Overview
 
-[Vision](#vision) • [Core Features](#core-features) • [Architecture](#architecture) • [Quick Start](#quick-start)
+The AI Education Platform is designed to demonstrate a modern approach to EdTech, moving beyond static content delivery to dynamic, AI-assistive learning. It addresses the challenge of personalized education at scale by leveraging Retrieval-Augmented Generation (RAG) to provide context-aware tutoring and assessment generation.
 
-</div>
+This repository contains the complete source code for the platform, including the React frontend, Node.js backend services, Python AI orchestrators, and infrastructure configuration.
 
----
-
-## Vision
-
-We are building the **AI Education Platform** because traditional LMS software is stuck in 2010. It’s static, clunky, and passive.
-
-Our goal is simple: **Active Learning**. By embedding Large Language Models (LLMs) directly into the study workflow, we transform static PDFs into interactive conversations. Students don't just read; they quiz themselves, summarize complex topics, and get instant feedback—all in real-time.
+[Architecture](#architecture) • [System Design](#system-design) • [AI Pipeline](#ai-pipeline) • [local Development](#local-development)
 
 ---
 
-## Core Features
+## Key Technical Features
 
-- **Intelligent Study Materials**: Don't just upload PDFs. Talk to them. Our RAG pipeline allows students to query their textbooks as if they were chatting with a professor.
-- **Always-On Tutor**: A context-aware assistant that knows exactly _which_ lesson you are studying and helps you get unblocked instantly.
-- **Dynamic Quizzing**: The system generates unique quizzes every time, focusing on your weak spots (Adaptive Learning).
-- **Insightful Analytics**: We track concept mastery, not just login times. Students can see exactly where they need to improve.
-- **Enterprise-Grade Security**: Role-based access control (RBAC) and encrypted data storage ensure privacy is never compromised.
+- **Retrieval-Augmented Generation (RAG)**: Implements a vector-search pipeline using Qdrant/Pinecone to ground LLM responses in verifiable course content, minimizing hallucination.
+- **Microservices Architecture**: Decoupled services for Authentication, Content Management, and AI Orchestration, allowing for independent scaling and deployment.
+- **Event-Driven Processing**: Utilizes message queues (Kafka/RabbitMQ) for handling high-latency AI tasks (e.g., PDF ingestion, embedding generation) asynchronously.
+- **Adaptive Assessment Engine**: Dynamically generates quizzes and exams based on student performance data and content coverage gaps.
+- **Role-Based Access Control (RBAC)**: Secure, granular permission systems implemented at the API Gateway and Service levels.
 
 ---
 
-## Tech Stack
+## Technology Stack
 
-We chose a stack that balances developer velocity with massive scalability.
+The stack was selected to optimize for type safety, concurrency, and AI ecosystem integration.
 
-| Component     | Technology                  | Why we chose it                                         |
-| ------------- | --------------------------- | ------------------------------------------------------- |
-| **Frontend**  | React, TypeScript, Tailwind | Type safety and component reusability.                  |
-| **Backend**   | Node.js (Express)           | Fast I/O for handling thousands of concurrent requests. |
-| **AI Layer**  | Python, LangChain, OpenAI   | Python is the native tongue of AI.                      |
-| **Database**  | PostgreSQL & Redis          | Reliability (SQL) meets Speed (Caching).                |
-| **Vector DB** | Qdrant / Pinecone           | Essential for our RAG (search) capabilities.            |
-| **DevOps**    | Docker, K8s                 | Write once, deploy anywhere.                            |
+| Layer                | Technology                  | Rationale                                                       |
+| :------------------- | :-------------------------- | :-------------------------------------------------------------- |
+| **Frontend**         | React, TypeScript, Tailwind | Component modularity and compile-time type safety.              |
+| **API Gateway**      | Kong / NGINX                | Centralized authentication, rate limiting, and request routing. |
+| **Backend Services** | Node.js (Express/NestJS)    | High-throughput I/O handling for RESTful APIs.                  |
+| **AI Orchestration** | Python (FastAPI, LangChain) | Native support for PyTorch/TensorFlow and LLM drivers.          |
+| **Data Persistence** | PostgreSQL                  | ACID compliance for transactional user and course data.         |
+| **Caching & State**  | Redis                       | Ephemeral storage for session management and API caching.       |
+| **Vector Search**    | Qdrant / Pinecone           | High-dimensional vector storage for semantic retrieval.         |
+| **Infrastructure**   | Docker, Kubernetes          | Containerization for consistent deployment environments.        |
 
 ---
 
 ## Architecture
 
-We didn't just throw this together. It's engineered to handle load.
+The system follows a standard evolved microservices pattern.
 
-### The 10,000-Foot View
+### High-Level Data Flow
 
-Traffic flows through our Load Balancer into a robust API Gateway. From there, it's routed to specialized microservices.
+Requests are funneled through an API Gateway which handles SSL termination and AuthN/AuthZ. Validated requests are proxied to the appropriate domain service. AI-intensive operations are offloaded asynchronously.
 
-> **Deep Dive**: Check out [System Design](docs/05_System_Design.md) for the full breakdown.
+> **Technical Detail**: See [docs/05_System_Design.md](docs/05_System_Design.md) for a deep dive into the scalability strategies, including load balancing and database sharding considerations.
 
 ```mermaid
 graph TD
-    User --> CDN
-    User --> LB[Load Balancer]
-    LB --> API[API Gateway]
-    API --> Auth[Auth Service]
-    API --> Course[Course Service]
-    API --> AI_Orch[AI Orchestrator]
-    AI_Orch --> Vector[Vector DB]
-    AI_Orch --> LLM[LLM Provider]
+    User -->|HTTPS| LB[Load Balancer]
+    LB --> Gateway[API Gateway]
+
+    subgraph "Service Mesh"
+        Gateway --> Auth[Auth Service]
+        Gateway --> Content[Course Service]
+        Gateway --> Analytics[Analytics Service]
+    end
+
+    subgraph "AI Infrastructure"
+        Content -->|Async Event| AI_Queue[Message Queue]
+        AI_Queue --> AI_Worker[AI Orchestrator]
+        AI_Worker --> VectorDB[(Vector DB)]
+        AI_Worker --> LLM[LLM Provider]
+    end
+
+    Auth --> DB[(Primary DB)]
+    Content --> DB
 ```
 
-### The AI Engine (RAG)
+### AI Pipeline (RAG)
 
-How does it "know" the course material? It uses **Retrieval-Augmented Generation**. We ingest documents, chunk them, embedding them, and then retrieve relevant context for every user query.
+The core value proposition lies in the AI pipeline. We utilize a two-stage process: Ingestion (document parsing, chunking, embedding) and Retrieval (semantic search, context injection, generation).
 
-> **Learn More**: Read [AI Workflow](docs/06_AI_Workflow.md) to understand the brain of the operation.
+> **Implementation**: Refer to [docs/06_AI_Workflow.md](docs/06_AI_Workflow.md) for the sequence diagrams and prompt engineering strategies.
 
 ---
 
 ## Project Structure
 
+We adopt a monorepo structure for ease of development and shared tooling.
+
 ```bash
 ai-education-platform/
-├── ai-engine/          # Python AI microservices (The Brain)
-├── backend/            # Node.js API services (The Body)
-├── frontend/           # React application (The Face)
-├── database/           # SQL migration scripts
-├── docs/               # Architecture decision records
-│   ├── diagrams/       # Extracted Mermaid source code
-│   └── uml/            # Visual assets
-└── assets/             # Static files
+├── ai-engine/          # Python services for RAG and LLM interaction
+├── backend/            # Node.js microservices (Auth, Content, User)
+├── frontend/           # React SPA implementation
+├── database/           # SQL schemas, migrations, and seed data
+├── docs/               # Architecture Decision Records (ADRs) and Diagrams
+│   ├── diagrams/       # Mermaid.js source files
+│   ├── behavioral/     # Sequence and State diagrams
+│   ├── structural/     # Class and Component diagrams
+│   └── er-diagram/     # Entity Relationship diagrams
+└── infrastructure/     # Docker Compose, K8s manifests, Terraform
 ```
 
 ---
 
-## Quick Start
-
-Ready to run this locally? Let's go.
+## Local Development
 
 ### Prerequisites
 
-- Node.js v18+
-- Python 3.9+
-- Docker & Docker Compose
+- Docker Desktop & Docker Compose
+- Node.js v18+ (LTS recommended)
+- Python 3.10+
+- Make (optional, for convenience scripts)
 
-### Fast Track Launch
+### Quick Start
 
-1.  **Clone the repo**
+1.  **Clone the repository:**
 
     ```bash
     git clone https://github.com/suvendukungfu/ai-education-platform.git
     cd ai-education-platform
     ```
 
-2.  **Spin up the infrastructure**
+2.  **Initialize Environment:**
+    Copy the example environment file and configure your LLM API keys (OpenAI/Anthropic).
+
+    ```bash
+    cp .env.example .env
+    ```
+
+3.  **Start Services:**
+    Use Docker Compose to spin up the full stack including databases.
 
     ```bash
     docker-compose up -d --build
     ```
 
-3.  **Launch**
-    - Frontend: `http://localhost:3000`
-    - API: `http://localhost:8000`
+4.  **Verify Deployment:**
+    - **Frontend**: Accessible at `http://localhost:3000`
+    - **API Gateway**: Accessible at `http://localhost:8000`
+    - **API Documentation (Swagger)**: `http://localhost:8000/docs`
 
 ---
 
-## Contributing
+## Contribution Guidelines
 
-We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
+We enforce strict code quality standards. Please ensure:
+
+- All code is covered by unit tests (Jest for JS, PyTest for Python).
+- Pre-commit hooks (Husky) pass for linting and formatting.
+- Commits follow the purely Semantic Commit Messages convention.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 ---
 
-<div align="center">
-Built by the AI Education Team
-</div>
+**Maintainer Note**: This project is under active development. Breaking changes to the API contract effectively bump the major version.
