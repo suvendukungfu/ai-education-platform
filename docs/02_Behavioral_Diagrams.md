@@ -4,18 +4,32 @@
 
 **Flow:** Student → Frontend → Backend API → AI Engine → Database → Response
 
-**Prompt:**
-Create a Sequence Diagram depicting the "Generate AI Notes" workflow.
+### Diagram
 
-1. **Student** requests notes generation via Frontend.
-2. **Frontend** calls **Backend API**.
-3. **Backend API** sends request to **AI Engine**.
-4. **AI Engine** processes content and returns notes.
-5. **Backend API** stores notes in **Database**.
-6. **Backend API** returns success to **Frontend**.
-7. **Frontend** displays notes to **Student**.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student
+    participant Frontend
+    participant API as "Backend API"
+    participant AI as "AI Engine"
+    participant DB as "Database"
 
-**Style:** Clean arrows, Readable labels, Professional academic design.
+    Student->>Frontend: Request AI Notes Generation
+    Frontend->>API: POST /api/generate-notes
+    activate API
+    API->>AI: Process Document Content
+    activate AI
+    AI-->>API: Return Generated Notes
+    deactivate AI
+    API->>DB: Save Notes
+    activate DB
+    DB-->>API: Confirm Save
+    deactivate DB
+    API-->>Frontend: Return Success & Notes
+    deactivate API
+    Frontend-->>Student: Display Generated Notes
+```
 
 ---
 
@@ -30,16 +44,30 @@ Create a Sequence Diagram depicting the "Generate AI Notes" workflow.
 - Take Exam
 - View Result
 
-**Prompt:**
-Generate an Activity Diagram for a typical student study session.
+### Diagram
 
-- Start -> Login -> Select Topic.
-- Decision: Generate Notes OR Create Quiz.
-- If Generate Notes -> View Notes -> End.
-- If Create Quiz -> Take Quiz -> View Result -> End.
-- Parallel: Background sync of progress.
+```mermaid
+flowchart TD
+    Start((Start)) --> Login[Login]
+    Login --> SelectTopic[Select Topic]
+    SelectTopic --> Choice{Action?}
 
-**Style:** Professional flow chart, Clear decision nodes.
+    Choice -->|Generate Notes| GenNotes[Generate AI Notes]
+    GenNotes --> ViewNotes[View Notes]
+    ViewNotes --> End((End))
+
+    Choice -->|Take Quiz| CreateQuiz[Create Quiz]
+    CreateQuiz --> TakeQuiz[Take Quiz]
+    TakeQuiz --> SubmitQuiz[Submit Quiz]
+    SubmitQuiz --> ViewResult[View Result]
+    ViewResult --> Analysis{Passed?}
+
+    Analysis -->|Yes| MarkComplete[Mark Topic Complete]
+    Analysis -->|No| Review[Review Material]
+
+    MarkComplete --> End
+    Review --> SelectTopic
+```
 
 ---
 
@@ -53,14 +81,31 @@ Generate an Activity Diagram for a typical student study session.
 - Testing
 - Completed
 
-**Prompt:**
-Create a State Machine Diagram for a Student's engagement with a specific Lesson.
+### Diagram
 
-- Initial State: **Idle**.
-- Transition to **Learning** when material is opened.
-- Transition to **Practicing** when taking a quiz.
-- Transition to **Testing** when taking an exam.
-- Transition to **Completed** when passing threshold met.
-- Return to **Idle** or **Learning** from other states based on actions.
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
 
-**Style:** Professional academic design, Clear state transitions.
+    Idle --> Learning : Open Material
+    Learning --> Idle : Close Material
+
+    Learning --> Practicing : Start Quiz
+    Practicing --> Learning : Quit Quiz
+    Practicing --> Testing : Start Exam
+
+    Testing --> Completed : Pass Exam
+    Testing --> Learning : Fail Exam
+
+    Completed --> [*]
+
+    note right of Learning
+        Student is reading content
+        or watching videos
+    end note
+
+    note right of Practicing
+        Taking low-stakes quizzes
+        to reinforcement learning
+    end note
+```
