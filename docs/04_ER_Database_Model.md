@@ -1,4 +1,4 @@
-# 🗄️ Database Design: The Foundation
+# Database Design: The Foundation
 
 Data is the lifeblood of our platform. We've designed a normalized, relational schema that ensures integrity without sacrificing performance. Every table serves a clear purpose, and every relationship is strictly defined.
 

@@ -1,8 +1,8 @@
-# 🎭 The Cast & Their Roles (Use Case Diagram)
+# The Cast & Their Roles (Use Case Diagram)
 
 Every great platform has a cast of characters. Here is how the key players interact with our AI Education system.
 
-### The Actors 🎬
+### The Actors
 
 1.  **The Student**: The hero of our story. They aren't just consuming; they are requesting custom notes, challenging themselves with quizzes, and tracking their own growth.
 2.  **The Admin**: The director. Only they can set the stage (Courses & Lessons) and ensure the audience (Users) plays by the rules.

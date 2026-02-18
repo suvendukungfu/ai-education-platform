@@ -1,4 +1,4 @@
-# 🏗️ Structural Design: The Code Backbone
+# Structural Design: The Code Backbone
 
 Great software isn't just written; it's engineered. For the AI Education Platform, we've adhered to strict **Object-Oriented Programming (OOP)** principles to ensure our code is cleaner, scalable, and easier to maintain.
 

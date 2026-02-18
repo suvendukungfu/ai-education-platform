@@ -1,8 +1,8 @@
-# 🗃️ The Filing System (ER Diagram)
+# The Filing System (ER Diagram)
 
 This is how we organize the platform's long-term memory. It's not just a pile of data; it's a connected web of information.
 
-### The Connections 🔗
+### The Connections
 
 - **Users & History**: We trace every `User` to their `ExamAttempts`. We verify not just _that_ they passed, but _when_ and with what score.
 - **Content Tree**:
