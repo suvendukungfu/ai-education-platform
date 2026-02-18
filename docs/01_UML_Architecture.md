@@ -15,26 +15,31 @@ The system is architected to support three distinct primary actors, each with sp
 ![Excalidraw Use Case Diagram](uml/use_case_diagram_excalidraw.png)
 
 ```mermaid
-usecaseDiagram
-    actor Student
-    actor Admin
-    actor AI_Engine as "AI Engine"
+flowchart LR
+    %% Actors
+    Student{{Student}}
+    Admin{{Admin}}
+    AIEngine{{AI Engine}}
 
-    package "Core Domain" {
-        usecase "Authentication & Identity" as UC_Auth
-        usecase "Content Navigation" as UC_Browse
-        usecase "Performance Analytics" as UC_Analytics
-        usecase "System Administration" as UC_Admin
-    }
+    %% Package: Core Domain
+    subgraph Core ["Core Domain"]
+        direction TB
+        UC_Auth([Authentication & Identity])
+        UC_Browse([Content Navigation])
+        UC_Analytics([Performance Analytics])
+        UC_Admin([System Administration])
+    end
 
-    package "AI Subsystem" {
-        usecase "Contextual Note Generation" as UC_Notes
-        usecase "Adaptive Assessment Generation" as UC_Quiz
-        usecase "Automated Grading" as UC_Grading
-        usecase "Semantic Search / Chat" as UC_Chat
-    }
+    %% Package: AI Subsystem
+    subgraph AI ["AI Subsystem"]
+        direction TB
+        UC_Notes([Contextual Note Generation])
+        UC_Quiz([Adaptive Assessment Generation])
+        UC_Grading([Automated Grading])
+        UC_Chat([Semantic Search / Chat])
+    end
 
-    %% Actor to Usecase mappings
+    %% Actor Relationships
     Student --> UC_Auth
     Student --> UC_Browse
     Student --> UC_Notes
@@ -45,14 +50,14 @@ usecaseDiagram
     Admin --> UC_Auth
     Admin --> UC_Admin
 
-    AI_Engine --> UC_Notes
-    AI_Engine --> UC_Quiz
-    AI_Engine --> UC_Grading
-    AI_Engine --> UC_Chat
+    AIEngine --> UC_Notes
+    AIEngine --> UC_Quiz
+    AIEngine --> UC_Grading
+    AIEngine --> UC_Chat
 
     %% Dependencies
-    UC_Notes ..> UC_Browse : <<extends>>
-    UC_Quiz ..> UC_Browse : <<extends>>
+    UC_Notes -.->|includes| UC_Browse
+    UC_Quiz -.->|includes| UC_Browse
 ```
 
 ---
