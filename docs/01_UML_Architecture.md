@@ -14,6 +14,8 @@ At its heart, our platform orchestrates a symphony between three key players: th
 
 ### Visualizing the Interactions
 
+![Excalidraw Use Case Diagram](uml/use_case_diagram_excalidraw.png)
+
 ```mermaid
 usecaseDiagram
     actor Student
