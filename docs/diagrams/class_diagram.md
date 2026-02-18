@@ -1,106 +1,84 @@
-# The System DNA (Class Diagram)
+# Domain Class Model
 
-If you looked at our code under a microscope, this is the genetic structure you would see. It defines _what_ things are and _how_ they relate to each other.
+This diagram represents the static structure of the domain entities and their relationships. It highlights the use of inheritance for user roles and interfaces for polymorphic AI service implementations.
 
-### The Genetic Code
+## Design Patterns
 
-- **Inheritance (The Lineage)**: Just as children inherit traits from parents, our `Student` and `Admin` classes inherit core identities from the `User` class.
-- **Polymorphism (The Shapeshifters)**: Our `AIService` is a chameleon. It can morph into a `NotesGenerator`, a `QuizGenerator`, or an `ExamGenerator` depending on what the user needs.
-- **Composition (The Building Blocks)**: A `Course` isn't just a title; it is _composed_ of many `Lessons`. Without lessons, a course is just an empty shell.
+- **Inheritance**: `Student` and `Admin` extend `User` to inherit identity properties (`email`, `passwordHash`).
+- **Composition**: `Course` is composed of `Modules` and `Lessons`, enforcing a strict parent-child lifecycle.
+- **Strategy Interface**: `AIService` defines the contract for various generative strategies (`NotesGenerator`, `QuizGenerator`).
 
-### The Blueprint
+## Diagram Source
 
 ```mermaid
 classDiagram
-    %% Abstract & Interface Definitions
+    %% Interface Segregation
     class AIService {
         <<interface>>
-        +generate(input: String): JSON
+        +generate(context: Context): Result
+        +validateOutput(output: JSON): boolean
     }
 
     class BaseEntity {
         <<abstract>>
         +UUID id
-        +Date createdAt
-        +Date updatedAt
+        +Timestamp createdAt
+        +Timestamp updatedAt
+        #prePersist()
+        #preUpdate()
     }
 
-    %% User Hierarchy (Inheritance)
+    %% User Domain
     class User {
-        -String name
         -String email
         -String passwordHash
-        +login()
-        +logout()
+        -Role role
+        +validateCredentials()
+        +updateProfile()
     }
 
     class Student {
-        -StudentProfile profile
-        +enrollCourse(courseId)
-        +viewProgress()
+        -Profile learningProfile
+        +enroll(Course c)
+        +getAnalytics()
     }
 
     class Admin {
-        -String department
-        +createCourse()
-        +manageUsers()
+        -Permissions[] permissions
+        +grantAccess()
+        +auditLogs()
     }
 
     User --|> BaseEntity
     Student --|> User
     Admin --|> User
 
-    %% Core Domain Models
+    %% Content Domain
     class Course {
-        -String title
-        -String description
-        +addLesson(Lesson)
-        +getModules()
+        +UUID id
+        +List~Module~ modules
+        +publish()
+        +archive()
     }
 
-    class Lesson {
-        -String topic
-        -String content
-        +generateAIContent()
+    class AssessmentStrategy {
+        <<interface>>
+        +evaluate(submission: Submission): Score
     }
 
-    class AINotes {
-        -String summary
-        -List~String~ keyPoints
-    }
-
-    class Quiz {
-        -List~Question~ questions
-        +evaluate(answers)
-    }
-
-    class Exam {
-        -int duration
-        +start()
-        +submit()
-    }
-
-    %% AI Implementation (Polymorphism)
+    %% Implementations
     class NotesGenerator {
-        +generate(content): Notes
+        +generate(context): Notes
     }
 
     class QuizGenerator {
-        +generate(topic): Quiz
-    }
-
-    class ExamGenerator {
-        +generate(course): Exam
+        +generate(context): Quiz
     }
 
     NotesGenerator ..|> AIService
     QuizGenerator ..|> AIService
-    ExamGenerator ..|> AIService
 
     %% Relationships
-    Course "1" *-- "*" Lesson : Contains
-    Lesson "1" --> "1" AINotes : Generates
-    Lesson "1" *-- "*" Quiz : Has
-    Course "1" *-- "*" Exam : Includes
-    Student "1" --> "*" Exam : Attempts
+    Course *-- Module : Composition
+    Student --> Course : Association (Enrollment)
 ```

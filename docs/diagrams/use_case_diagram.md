@@ -1,14 +1,14 @@
-# The Cast & Their Roles (Use Case Diagram)
+# Use Case Specifications
 
-Every great platform has a cast of characters. Here is how the key players interact with our AI Education system.
+This diagram delineates the functional scope of the system, identifying primary actors and their permissible interactions with the platform's core domains.
 
-### The Actors
+## Actor Definitions
 
-1.  **The Student**: The hero of our story. They aren't just consuming; they are requesting custom notes, challenging themselves with quizzes, and tracking their own growth.
-2.  **The Admin**: The director. Only they can set the stage (Courses & Lessons) and ensure the audience (Users) plays by the rules.
-3.  **The AI Engine**: The special effects wizard. It works behind the scenes to generate content on demand, making the magic happen.
+- **Student**: Authenticated end-user with read access to content and write access to assessment submissions.
+- **Admin**: Privileged user responsible for content lifecycle management (CRUD on Courses/Lessons) and user administration.
+- **AI Engine**: Autonomous system actor triggered by specific events (e.g., "Generate Notes") to perform background processing.
 
-### The Script (Diagram)
+## Diagram Source
 
 ```mermaid
 usecaseDiagram
@@ -16,45 +16,37 @@ usecaseDiagram
     actor Admin
     actor AI_Engine as "AI Engine"
 
-    package "AI Education Platform" {
-        usecase "Register/Login" as UC_Auth
-        usecase "Select Course/Topic" as UC_Browse
-        usecase "Generate AI Notes" as UC_Notes
-        usecase "Create Quiz" as UC_Quiz
-        usecase "Attempt Exam" as UC_Exam
-        usecase "Chat with AI Tutor" as UC_Chat
-        usecase "View Analytics" as UC_Analytics
-
-        usecase "Manage Courses" as UC_ManageCourses
-        usecase "Manage Lessons" as UC_ManageLessons
-        usecase "Monitor Users" as UC_Monitor
-
-        usecase "Generate Content" as UC_GenContent
-        usecase "Answer Queries" as UC_Answer
+    package "Core Domain" {
+        usecase "Authentication & Identity" as UC_Auth
+        usecase "Content Navigation" as UC_Browse
+        usecase "Performance Analytics" as UC_Analytics
+        usecase "System Administration" as UC_Admin
     }
 
-    %% Student Relationships
+    package "AI Subsystem" {
+        usecase "Contextual Note Generation" as UC_Notes
+        usecase "Adaptive Assessment Generation" as UC_Quiz
+        usecase "Automated Grading" as UC_Grading
+        usecase "Semantic Search / Chat" as UC_Chat
+    }
+
+    %% Actor to Usecase mappings
     Student --> UC_Auth
     Student --> UC_Browse
     Student --> UC_Notes
     Student --> UC_Quiz
-    Student --> UC_Exam
     Student --> UC_Chat
     Student --> UC_Analytics
 
-    %% Admin Relationships
     Admin --> UC_Auth
-    Admin --> UC_ManageCourses
-    Admin --> UC_ManageLessons
-    Admin --> UC_Monitor
+    Admin --> UC_Admin
 
-    %% AI Engine Relationships
-    AI_Engine --> UC_GenContent
-    AI_Engine --> UC_Answer
+    AI_Engine --> UC_Notes
+    AI_Engine --> UC_Quiz
+    AI_Engine --> UC_Grading
+    AI_Engine --> UC_Chat
 
-    %% Dependencies (Includes)
-    UC_Notes ..> UC_GenContent : <<include>>
-    UC_Quiz ..> UC_GenContent : <<include>>
-    UC_Exam ..> UC_GenContent : <<include>>
-    UC_Chat ..> UC_Answer : <<include>>
+    %% Dependencies
+    UC_Notes ..> UC_Browse : <<extends>>
+    UC_Quiz ..> UC_Browse : <<extends>>
 ```
