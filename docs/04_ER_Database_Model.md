@@ -4,35 +4,95 @@
 
 **Tables:**
 
-- `Users` (id, name, email, password_hash, role)
-- `Courses` (id, title, description)
-- `Lessons` (id, course_id, topic)
-- `AINotes` (id, lesson_id, generated_content)
-- `Quizzes` (id, lesson_id)
-- `Questions` (id, quiz_id, question_text, answer)
-- `Exams` (id, course_id)
-- `ExamAttempts` (id, exam_id, user_id, score)
-- `Analytics` (id, user_id, progress)
+- `Users`
+- `Courses`
+- `Lessons`
+- `AINotes`
+- `Quizzes`
+- `Questions`
+- `Exams`
+- `ExamAttempts`
+- `Analytics`
 
-**Relationships:**
+### Diagram
 
-- **User** (1) ---- (0..\*) **ExamAttempts**
-- **Course** (1) ---- (1..\*) **Lessons**
-- **Lesson** (1) ---- (0..\*) **Quizzes**
-- **Quiz** (1) ---- (1..\*) **Questions**
-- **Lesson** (1) ---- (0..1) **AINotes**
-- **Course** (1) ---- (0..\*) **Exams**
+```mermaid
+erDiagram
+    USERS {
+        UUID id PK
+        string name
+        string email
+        string password_hash
+        enum role
+        timestamp created_at
+    }
 
-**Prompt:**
-Create an Entity Relationship Diagram (ERD) for the AI Education Platform database.
+    COURSES {
+        UUID id PK
+        string title
+        text description
+        boolean is_published
+    }
 
-- Visualise tables with primary keys (PK) and foreign keys (FK).
-- distinct columns with data types (imputed).
-- Show relationships with crow's foot notation.
+    LESSONS {
+        UUID id PK
+        UUID course_id FK
+        string topic
+        text content
+        int order_index
+    }
 
-**Style:**
+    AI_NOTES {
+        UUID id PK
+        UUID lesson_id FK
+        text generated_content
+        timestamp created_at
+    }
 
-- Startup SaaS database ERD.
-- Clear cardinality.
-- Professional layout.
-- High contrast for readability.
+    QUIZZES {
+        UUID id PK
+        UUID lesson_id FK
+        string title
+    }
+
+    QUESTIONS {
+        UUID id PK
+        UUID quiz_id FK
+        text question_text
+        json options
+        string correct_answer
+    }
+
+    EXAMS {
+        UUID id PK
+        UUID course_id FK
+        string title
+        int duration_mins
+    }
+
+    EXAM_ATTEMPTS {
+        UUID id PK
+        UUID exam_id FK
+        UUID user_id FK
+        int score
+        boolean passed
+        timestamp attempted_at
+    }
+
+    ANALYTICS {
+        UUID id PK
+        UUID user_id FK
+        UUID course_id FK
+        float progress_percentage
+        timestamp last_active
+    }
+
+    USERS ||--o{ EXAM_ATTEMPTS : takes
+    USERS ||--o{ ANALYTICS : tracks
+    COURSES ||--|{ LESSONS : contains
+    COURSES ||--o{ EXAMS : has
+    LESSONS ||--o| AI_NOTES : generates
+    LESSONS ||--o{ QUIZZES : has
+    QUIZZES ||--|{ QUESTIONS : contains
+    EXAMS ||--|{ EXAM_ATTEMPTS : results_in
+```
