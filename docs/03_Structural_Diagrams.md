@@ -1,17 +1,18 @@
-# Structural Diagrams
+# 🏗️ Structural Design: The Code Backbone
 
-## Class Diagram
+Great software isn't just written; it's engineered. For the AI Education Platform, we've adhered to strict **Object-Oriented Programming (OOP)** principles to ensure our code is cleaner, scalable, and easier to maintain.
 
-This diagram visualizes the Object-Oriented Design (OOP) of the backend services.
+---
 
-**Key Design Patterns:**
+## 1. Class Hierarchy (Class Diagram)
 
-- **Inheritance**: `User` is the base class for `Student` and `Admin`.
-- **Abstraction**: `AIService` defines the contract for AI operations.
-- **Polymorphism**: `NotesGenerator`, `QuizGenerator`, and `ExamGenerator` implement `AIService`.
-- **Encapsulation**: Private fields (denoted by `-`) protected by public methods.
+This isn't just a list of classes. It's a carefully structured family tree of objects.
 
-### Diagram
+- **Inheritance (The "Is-A" Relationship)**: We don't repeat code for `Student` and `Admin`. Both inherit from a robust `User` class, sharing core identity logic while keeping their unique powers separate.
+- **Polymorphism (The "Acts-Like" Relationship)**: Our AI is versatile. Whether generating **Notes**, **Quizzes**, or **Exams**, the system treats them all as an `AIService`. This means we can add a "Flashcard Generator" tomorrow without breaking the existing code.
+- **Encapsulation**: Data is sacred. We lock down sensitive fields (like `passwordHash`) and only expose safe methods to interact with them.
+
+### The Blueprint
 
 ```mermaid
 classDiagram
@@ -110,18 +111,17 @@ classDiagram
 
 ---
 
-## Package Diagram
+## 2. Code Organization (Package Diagram)
 
-**Packages:**
+A messy codebase is a dying codebase. We organize our logic into distinct packages, essentially "neighborhoods" of code that handle specific jobs.
 
-- `com.edutech.auth`
-- `com.edutech.course`
-- `com.edutech.ai`
-- `com.edutech.assessment`
-- `com.edutech.analytics`
-- `com.edutech.common`
+- **`com.edutech.auth`**: The security gatekeepers.
+- **`com.edutech.ai`**: The intelligent core.
+- **`com.edutech.assessment`**: The testing center.
 
-### Diagram
+By clearly defining dependencies (the dotted lines), we prevent "spaghetti code" where everything depends on everything else.
+
+### The Package Neighborhoods
 
 ```mermaid
 packageDiagram

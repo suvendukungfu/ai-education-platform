@@ -1,10 +1,21 @@
-# Behavioral Diagrams
+# 🎬 Behavioral Flows: The Student Experience
 
-## Sequence Diagram
+Static structures are important, but software really comes alive in its _behavior_. This document captures the dynamic stories of our users—how they move through the system, make decisions, and evolve their learning.
 
-**Scenario:** End-to-End Student Learning Flow (Login → Study → Quiz → Exam → Analytics)
+---
 
-### Diagram
+## 1. The Learning Journey (Sequence Diagram)
+
+Let's trace the path of a dedicated student. It's a journey that starts with curiosity and ends with mastery.
+
+**The Narrative:**
+
+1.  **Discovery**: The student logs in and selects a complex topic (e.g., "Machine Learning").
+2.  **Synthesis**: Overwhelmed by raw content, they ask the AI to **Generate Notes**. The system crunches the data and serves up a concise summary.
+3.  **Practice**: Feeling confident, they generate a **Quiz**. The AI creates questions _on the fly_ based on exactly what they just studied.
+4.  **Validation**: They take an **Exam**, and immediately, the system updates their **Analytics**. They don't just see a score; they see growth.
+
+### The Flow of Interaction
 
 ```mermaid
 sequenceDiagram
@@ -64,37 +75,32 @@ sequenceDiagram
 
 ---
 
-## Activity Diagram
+## 2. Decision Points (Activity Diagram)
 
-**Steps:**
+Students don't always follow a linear path. They explore. This diagram maps out the decisions a student makes during a study session. Do they dive deep into notes? Do they test themselves? If they fail, do they review?
 
-- Login
-- Select Topic
-- Generate Notes
-- Create Quiz
-- Take Exam
-- View Result
+It's a continuous loop of **Action -> Feedback -> Improvement**.
 
-### Diagram
+### The Study Loop
 
 ```mermaid
 flowchart TD
     Start((Start)) --> Login[Login]
-    Login --> SelectTopic[Select Topic]
-    SelectTopic --> Choice{Action?}
+    Login --> SelectTopic[Smart Topic Selection]
+    SelectTopic --> Choice{What's Next?}
 
-    Choice -->|Generate Notes| GenNotes[Generate AI Notes]
-    GenNotes --> ViewNotes[View Notes]
-    ViewNotes --> End((End))
+    Choice -->|Need Summary| GenNotes[Generate AI Notes]
+    GenNotes --> ViewNotes[Study Concepts]
+    ViewNotes --> End((Session End))
 
-    Choice -->|Take Quiz| CreateQuiz[Create Quiz]
-    CreateQuiz --> TakeQuiz[Take Quiz]
-    TakeQuiz --> SubmitQuiz[Submit Quiz]
-    SubmitQuiz --> ViewResult[View Result]
-    ViewResult --> Analysis{Passed?}
+    Choice -->|Ready to Test| CreateQuiz[Generate AI Quiz]
+    CreateQuiz --> TakeQuiz[Attempt Questions]
+    TakeQuiz --> SubmitQuiz[Submit for Grading]
+    SubmitQuiz --> ViewResult[Analyze Results]
+    ViewResult --> Analysis{Mastered?}
 
-    Analysis -->|Yes| MarkComplete[Mark Topic Complete]
-    Analysis -->|No| Review[Review Material]
+    Analysis -->|Yes!| MarkComplete[Mark Topic Complete]
+    Analysis -->|Not Yet| Review[Review Weak Areas]
 
     MarkComplete --> End
     Review --> SelectTopic
@@ -102,17 +108,17 @@ flowchart TD
 
 ---
 
-## State Machine Diagram
+## 3. Modes of Engagement (State Machine)
 
-**States:**
+A student isn't just "online". They are in specific mental states. Understanding these states allows us to tailor the interface to their current need.
 
-- Idle
-- Learning
-- Practicing
-- Testing
-- Completed
+- **Idle**: Browsing, deciding.
+- **Learning**: Deep focus. We minimize distractions here.
+- **Practicing**: Active recall. Low stakes, high feedback.
+- **Testing**: High stakes. Timed, secure environment.
+- **Completed**: Celebration and reflection.
 
-### Diagram
+### User State Transitions
 
 ```mermaid
 stateDiagram-v2
@@ -121,22 +127,22 @@ stateDiagram-v2
     Idle --> Learning : Open Material
     Learning --> Idle : Close Material
 
-    Learning --> Practicing : Start Quiz
-    Practicing --> Learning : Quit Quiz
-    Practicing --> Testing : Start Exam
+    Learning --> Practicing : specific "Check Knowledge"
+    Practicing --> Learning : Return to Study
+    Practicing --> Testing : Ready for Exam
 
-    Testing --> Completed : Pass Exam
-    Testing --> Learning : Fail Exam
+    Testing --> Completed : Passed (Score > 70%)
+    Testing --> Learning : Failed (Needs Review)
 
     Completed --> [*]
 
     note right of Learning
-        Student is reading content
-        or watching videos
+        "Consumer Mode"
+        Reading, Watching, Absorbing
     end note
 
     note right of Practicing
-        Taking low-stakes quizzes
-        to reinforcement learning
+        "Active Mode"
+        Low-stress, Instant Feedback
     end note
 ```
