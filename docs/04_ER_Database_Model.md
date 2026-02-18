@@ -1,66 +1,63 @@
-# Database Design: The Foundation
+# Database Schema & Data Modeling
 
-Data is the lifeblood of our platform. We've designed a normalized, relational schema that ensures integrity without sacrificing performance. Every table serves a clear purpose, and every relationship is strictly defined.
+The platform utilizes a **PostgreSQL** relational database for its primary data store. The schema is normalized to **3NF** (Third Normal Form) to ensure data integrity and reduce redundancy.
 
-### Entity Relationship Diagram (ERD)
+## Design Philosophy
+
+- **Referential Integrity**: Strict Foreign Key constraints are enforced at the database level to prevent orphaned records (e.g., an `ExamAttempt` cannot exist without a valid `User` and `Exam`).
+- **Indexing Strategy**: Indices are applied to high-cardinality columns used in `WHERE` clauses (e.g., `email`, `course_id`) and Foreign Keys to optimize join performance.
+- **JSONB Hybrid**: We utilize PostgreSQL's `JSONB` type for the `Analytics` and `Question.options` columns. This allows for semi-structured data flexibility (schema-on-read) within a rigid relational environment, particularly useful for evolving analytics metrics.
+
+## Entity Relationship Diagram (ERD)
 
 ![Excalidraw ER Diagram](../docs/er-diagram/er_diagram_excalidraw.png)
 
 ```mermaid
 erDiagram
-    %% User Management
+    %% Identity Management
     USERS {
-        UUID id PK
-        string name
-        string email
-        string password_hash
+        UUID id PK "gen_random_uuid()"
+        string email UK "Indexed, Lowercase"
+        string password_hash "Argon2"
         enum role "STUDENT, ADMIN, INSTRUCTOR"
         timestamp created_at
+        timestamp updated_at
     }
 
-    %% Course Management
+    %% Content Management
     COURSES {
         UUID id PK
         string title
         text description
+        boolean is_published "Index"
         timestamp created_at
     }
 
     LESSONS {
         UUID id PK
-        UUID course_id FK
-        string topic
-        text content
+        UUID course_id FK "Index"
+        string title
+        text content_url "S3 Object Key"
         int order_index
     }
 
+    %% AI Artifacts
     AI_NOTES {
         UUID id PK
-        UUID lesson_id FK
-        text generated_content
-        timestamp created_at
+        UUID lesson_id FK "Unique Constraint (1:1)"
+        text summary_markdown
+        jsonb key_concepts "Structured array"
+        timestamp generated_at
     }
 
-    %% Assessments
-    QUIZZES {
-        UUID id PK
-        UUID lesson_id FK
-        string title
-    }
-
-    QUESTIONS {
-        UUID id PK
-        UUID quiz_id FK
-        text question_text
-        text answer
-        json options "Optional multiple choice"
-    }
-
+    %% Assessment Domain
     EXAMS {
         UUID id PK
         UUID course_id FK
         string title
-        int duration_minutes
+        int duration_seconds
+        int passing_score_percent
+        jsonb config "Adaptive settings"
     }
 
     EXAM_ATTEMPTS {
@@ -68,38 +65,31 @@ erDiagram
         UUID exam_id FK
         UUID user_id FK
         int score
-        boolean passed
-        timestamp attempted_at
-    }
-
-    %% Analytics
-    ANALYTICS {
-        UUID id PK
-        UUID user_id FK
-        json progress_data
-        timestamp last_updated
+        timestamptz started_at
+        timestamptz completed_at
+        jsonb answer_sheet "User responses snapshot"
     }
 
     %% Relationships
-    USERS ||--o{ EXAM_ATTEMPTS : takes
-    USERS ||--o{ ANALYTICS : has
-
-    COURSES ||--|{ LESSONS : contains
-    COURSES ||--o{ EXAMS : has
-
-    LESSONS ||--o{ QUIZZES : has
+    COURSES ||--|{ LESSONS : owns
     LESSONS ||--o| AI_NOTES : generates
-
-    QUIZZES ||--|{ QUESTIONS : contains
-
-    EXAMS ||--|{ EXAM_ATTEMPTS : results_in
+    COURSES ||--o{ EXAMS : contains
+    EXAMS ||--|{ EXAM_ATTEMPTS : logs
+    USERS ||--|{ EXAM_ATTEMPTS : performs
 ```
 
----
+## Schema Details
 
-## The Data Story
+### 1. `AI_NOTES`
 
-1.  **Identity (Users)**: This is where it starts. A `User` is the central entity, capable of being a student, admin, or instructor.
-2.  **Content Hierarchy (Courses & Lessons)**: Content isn't just a blob. It's structured. A `Course` holds multiple `Lessons`, creating a clear learning path.
-3.  **Generated Value (AI Notes)**: When AI creates content, it's not ephemeral. We store `AI_Notes` linked directly to lessons, so students can revisit them anytime.
-4.  **Assessment & Growth**: We don't just store questions (`Questions`); we track every single attempt (`Exam_Attempts`). This allows our `Analytics` engine to see _how_ a student is improving over time, not just where they are today.
+Stores the output of the RAG pipeline.
+
+- **Constraint**: A `LESSON` can have only ONE associated `AI_NOTE` record (One-to-One).
+- **Data Type**: `key_concepts` is stored as `JSONB` to allow for efficient querying of specific concepts across all notes (e.g., "Find all notes mentioning 'Thermodynamics'").
+
+### 2. `EXAM_ATTEMPTS`
+
+This is an immutable log of user activity.
+
+- **Immutability**: Once written, these records represent a historical fact and are rarely updated, only inserted.
+- **Snapshotting**: The `answer_sheet` JSONB column stores the exact state of the questions and answers _at the time of the exam_, protecting against future changes to the source questions.

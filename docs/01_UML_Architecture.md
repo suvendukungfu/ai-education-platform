@@ -1,8 +1,16 @@
-# AI Education Platform: Architectural Breakdown
+# Architecture & Use Case Definitions
 
-Welcome to the architectural blueprint of our AI Education Platform. This document moves beyond simple lists to explain the **why** and **how** behind our system's design. We've built this platform not just to serve content, but to actively participate in the student's learning journey.
+This document serves as the high-level architectural contract for the AI Education Platform. It defines the system boundaries, actor interactions, and the primary functional requirements that drive the technical design.
 
-### Visualizing the Interactions
+## System Boundaries and Actors
+
+The system is architected to support three distinct primary actors, each with specific privilege levels and interaction patterns.
+
+- **Student**: The primary end-user. Interactions are focused on content consumption, assessment generation, and analytics viewing. Low-privilege access.
+- **Admin/Instructor**: System managers. Interactions involve content creation, user management, and system configuration. High-privilege access.
+- **AI Engine**: A non-human actor (in UML terms) representing the autonomous agents responsible for content generation and grading.
+
+### Visual Architecture Reference
 
 ![Excalidraw Use Case Diagram](uml/use_case_diagram_excalidraw.png)
 
@@ -12,141 +20,89 @@ usecaseDiagram
     actor Admin
     actor AI_Engine as "AI Engine"
 
-    package "AI Education Platform" {
-        usecase "Register/Login" as UC_Auth
-        usecase "Select Course/Topic" as UC_Browse
-        usecase "Generate AI Notes" as UC_Notes
-        usecase "Create Quiz" as UC_Quiz
-        usecase "Attempt Exam" as UC_Exam
-        usecase "Chat with AI Tutor" as UC_Chat
-        usecase "View Analytics" as UC_Analytics
-
-        usecase "Manage Courses" as UC_ManageCourses
-        usecase "Manage Lessons" as UC_ManageLessons
-        usecase "Monitor Users" as UC_Monitor
-
-        usecase "Generate Content" as UC_GenContent
-        usecase "Answer Queries" as UC_Answer
+    package "Core Domain" {
+        usecase "Authentication & Identity" as UC_Auth
+        usecase "Content Navigation" as UC_Browse
+        usecase "Performance Analytics" as UC_Analytics
+        usecase "System Administration" as UC_Admin
     }
 
-    %% Student Relationships
+    package "AI Subsystem" {
+        usecase "Contextual Note Generation" as UC_Notes
+        usecase "Adaptive Assessment Generation" as UC_Quiz
+        usecase "Automated Grading" as UC_Grading
+        usecase "Semantic Search / Chat" as UC_Chat
+    }
+
+    %% Actor to Usecase mappings
     Student --> UC_Auth
     Student --> UC_Browse
     Student --> UC_Notes
     Student --> UC_Quiz
-    Student --> UC_Exam
     Student --> UC_Chat
     Student --> UC_Analytics
 
-    %% Admin Relationships
     Admin --> UC_Auth
-    Admin --> UC_ManageCourses
-    Admin --> UC_ManageLessons
-    Admin --> UC_Monitor
+    Admin --> UC_Admin
 
-    %% AI Engine Relationships
-    AI_Engine --> UC_GenContent
-    AI_Engine --> UC_Answer
+    AI_Engine --> UC_Notes
+    AI_Engine --> UC_Quiz
+    AI_Engine --> UC_Grading
+    AI_Engine --> UC_Chat
 
-    %% Dependencies (Includes)
-    UC_Notes ..> UC_GenContent : <<include>>
-    UC_Quiz ..> UC_GenContent : <<include>>
-    UC_Exam ..> UC_GenContent : <<include>>
-    UC_Chat ..> UC_Answer : <<include>>
+    %% Dependencies
+    UC_Notes ..> UC_Browse : <<extends>>
+    UC_Quiz ..> UC_Browse : <<extends>>
 ```
 
 ---
 
-## 1. The Core Interaction Model
+## Component Architecture
 
-At its heart, our platform orchestrates a symphony between three key players: the **Student**, the **Admin**, and our intelligent **AI Engine**.
+To ensure separation of concerns and maintainability, the backend is divided into logical domains. This aligns with Domain-Driven Design (DDD) principles.
 
-- **The Student's Journey**: It's not just about logging in. Students come here to _engage_. From generating custom AI notes to challenging themselves with adaptive quizzes, every interaction is designed to deepen understanding.
-- **The AI Engine**: Think of this not as a tool, but as a tireless tutor. It doesn't just "process data"; it _generates insight_. It powers the notes, crafts the questions, and provides the answers that keep students moving forward.
-- **The Admin**: The conductor. They ensure the course material is pristine and the ecosystem remains healthy.
+1.  **Identity Domain (`Auth Service`)**: Handles JWT issuance, validation, and user profile management.
+2.  **Curriculum Domain (`Course Service`)**: Manages the hierarchy of Courses, Modules, and Lessons.
+3.  **Assessment Domain (`Assessment Service`)**: Encapsulates logic for Quiz/Exam generation and scoring.
+4.  **Intelligence Domain (`AI Service`)**: Wraps LLM interactions and manages vector store operations.
 
----
+### Component Interaction Diagram
 
-## 2. Modular Design Strategy (Component Diagram)
-
-We firmly believe in separation of concerns. Our backend is not a monolith; it's a collection of specialized services working in harmony.
-
-- **Core Services**: The bedrock. `Auth` handles security, while `Course` manages the curriculum. `Analytics` silently observes, gathering data to provide actionable feedback.
-- **AI Services**: The brain. `AI Notes Generator` and `Chat Assistant` are the creative engines, transforming static text into dynamic learning aids.
-- **Assessment Services**: The examiners. They don't just grade; they evaluate understanding through our `Quiz` and `Exam` engines.
-
-### The Component Map
+This diagram illustrates the dependencies between the logical service components.
 
 ```mermaid
 componentDiagram
-    package "Core Services" {
-        component "Auth Service" as AuthService
-        component "Course Service" as CourseService
-        component "Analytics Service" as AnalyticsService
+    package "Public Interface" {
+        component "API Gateway" as Gateway
     }
 
-    package "AI Services" {
-        component "AI Notes Generator" as AINotes
-        component "Chat Assistant" as ChatBot
+    package "Service Layer" {
+        component "Auth Service" as Auth
+        component "Course Service" as Course
+        component "AI Orchestrator" as AI
+        component "Analytics Engine" as Analytics
     }
 
-    package "Assessment Services" {
-        component "Quiz Engine" as QuizEngine
-        component "Exam Engine" as ExamEngine
+    package "Persistence Layer" {
+        database "PostgreSQL (Relational)" as DB
+        database "Qdrant (Vector)" as VectorDB
     }
 
-    database "PostgreSQL" as DB
-    database "Vector DB" as VectorDB
+    Gateway --> Auth : HTTPS/JSON
+    Gateway --> Course : HTTPS/JSON
+    Gateway --> AI : HTTPS/JSON
 
-    AuthService --> DB : Read/Write User Data
-    CourseService --> DB : Read/Write Course Data
-    AnalyticsService --> DB : Log/Read Progress
+    Course --> DB : Read/Write
+    Auth --> DB : Read/Write
+    Analytics --> DB : Aggregation
 
-    AINotes --> VectorDB : Store Embeddings
-    ChatBot --> VectorDB : Retrieve Context
-
-    QuizEngine --> CourseService : Fetch Content
-    ExamEngine --> CourseService : Fetch Content
-
-    AINotes ..> CourseService : Process Content
-    ChatBot ..> CourseService : Query Content
+    AI ..> Course : Pub/Sub (Events)
+    AI --> VectorDB : Embedding Ops
+    AI --> DB : Context Retrieval
 ```
 
----
+## Architectural Decisions (ADRs) Summary
 
-## 3. The 10,000-Foot View (System Architecture)
-
-How do millions of requests flow without crashing the system? Structure.
-
-We route traffic through a robust **API Gateway**, ensuring that every request is authenticated and directed to the right service. The **Application Layer** handles the business logic, while the **AI Integration Layer** acts as the bridge to our Large Language Models (LLMs), ensuring we use their power efficiently without overwhelming them.
-
-### High-Level Architecture
-
-```mermaid
-graph TD
-    User[User (Student/Admin)] -->|HTTPS| CDN[CDN]
-    User -->|HTTPS| Frontend[Frontend (React/Next.js)]
-
-    subgraph "Application Layer"
-        Frontend -->|API Requests| Gateway[API Gateway]
-        Gateway --> Auth[Auth Service]
-        Gateway --> Course[Course Service]
-        Gateway --> Assess[Assessment Service]
-        Gateway --> Analytics[Analytics Service]
-    end
-
-    subgraph "AI Integration Layer"
-        Course -->|Trigger| AI_Orch[AI Orchestrator]
-        Assess -->|Request| AI_Orch
-        AI_Orch -->|Prompt| LLM[LLM Service (OpenAI/Gemini)]
-        AI_Orch -->|Embed| Vector[Vector DB]
-    end
-
-    subgraph "Data Layer"
-        Auth --> SQL[(PostgreSQL)]
-        Course --> SQL
-        Assess --> SQL
-        Analytics --> SQL
-        Course --> Storage[Object Storage (S3)]
-    end
-```
+- **ADR-001: Separation of AI Logic**: The AI Orchestrator is a separate service to allow for Python-based tooling optimization without constraining the Node.js API services.
+- **ADR-002: Async Processing for Generation**: All content generation tasks (Notes, Quizzes) are asynchronous to prevent HTTP timeouts and improve user perceived performance.
+- **ADR-003: Postgres as Primary Source of Truth**: While RAG uses a Vector DB, all canonical data (User records, Course content) resides in PostgreSQL to ensure ACID compliance.

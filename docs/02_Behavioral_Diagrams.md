@@ -1,150 +1,127 @@
-# Behavioral Flows: The Student Experience
+# Behavioral Specifications
 
-Static structures are important, but software really comes alive in its _behavior_. This document captures the dynamic stories of our users—how they move through the system, make decisions, and evolve their learning.
+This document defines the runtime behavior of the system, detailing the interactions between objects and the state transitions of key entities. It serves as a guide for implementing business logic and concurrency controls.
 
-### The Flow of Interaction
+## 1. Request Lifecycle: Content Generation
+
+A critical flow in the system is the **Asynchronous Content Generation** pipeline. This process involves coordination between the frontend client, the API, the database, and the AI worker execution environment.
+
+### Sequence Diagram
 
 ![Excalidraw Sequence Diagram](../docs/behavioral/sequence_diagram_excalidraw.png)
+
+**Key Technical Considerations:**
+
+- **Idempotency**: Requests to generate content should be idempotent to prevent duplicate processing costs.
+- **Optimistic UI**: The frontend should respond immediately to the user while polling or waiting for a WebSocket event for the completion of the generation task.
+- **Error Handling**: The system must gracefully handle LLM API timeouts or rate limits (HTTP 429).
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Student
-    participant UI as "Frontend UI"
-    participant API as "Backend API"
-    participant AI as "AI Service"
-    participant DB as "Database"
+    actor Client as Client (SPA)
+    participant API as API Gateway
+    participant Svc as Course Service
+    participant Queue as Job Queue
+    participant Worker as AI Worker
+    participant DB as Database
 
-    %% 1. Authentication
-    Student->>UI: Login(email, password)
-    UI->>API: POST /auth/login
-    API->>DB: Validate Credentials
-    DB-->>API: User Found
-    API-->>UI: Return Auth Token
+    %% Initiation
+    Client->>API: POST /api/v1/lessons/{id}/summarize
+    API->>Svc: Validate Request & Auth
+    Svc->>DB: Check for Cached Summary
 
-    %% 2. Study Phase
-    Student->>UI: Select Topic (e.g., "Machine Learning")
-    UI->>API: GET /courses/topic/{id}
-    API->>DB: Fetch Content
-    DB-->>API: Return Content
-    API-->>UI: Display Lesson
+    alt Summary Exists
+        DB-->>Svc: Return Cached Data
+        Svc-->>Client: 200 OK (Cached)
+    else Summary Missing
+        Svc->>Queue: Publish Generation Job
+        Svc-->>Client: 202 Accepted (Job ID)
 
-    %% 3. AI Notes Generation
-    Student->>UI: Click "Generate AI Summaries"
-    UI->>API: POST /ai/generate-notes
-    API->>AI: Request Summary (Lesson Content)
-    activate AI
-    AI-->>API: Return Generated Notes
-    deactivate AI
-    API->>DB: Save Notes
-    API-->>UI: Display Notes
+        %% Async Processing
+        Queue->>Worker: Consume Job
+        activate Worker
+        Worker->>DB: Fetch Lesson Content
+        Worker->>Worker: Generate Summary (LLM)
+        Worker->>DB: Persist Summary & Update Cache
+        deactivate Worker
 
-    %% 4. Practice Phase (Quiz)
-    Student->>UI: Create Practice Quiz
-    UI->>API: POST /quiz/create
-    API->>AI: Generate Questions (Topic)
-    AI-->>API: Return Quiz JSON
-    API-->>UI: Render Quiz
-    Student->>UI: Submit Answers
-    UI->>API: POST /quiz/submit
-    API->>DB: Store Results
-
-    %% 5. Assessment Phase (Exam) & Analytics
-    Student->>UI: Attempt Exam
-    UI->>API: Start Exam Session
-    ... (Exam Interaction) ...
-    Student->>UI: Submit Exam
-    UI->>API: POST /exam/submit
-    API->>DB: Calculate & Store Score
-
-    API->>DB: Update Analytics (Progress + Score)
-    API-->>UI: Return Exam Result & New Analytics
-    UI-->>Student: Show Scorecard
+        %% Notification
+        Worker-->>Client: WebSocket Event (Job Complete)
+    end
 ```
 
 ---
 
-## 1. The Learning Journey
+## 2. Activity Workflow: The Study Loop
 
-Let's trace the path of a dedicated student. It's a journey that starts with curiosity and ends with mastery.
+The student's study session is modeled as a cyclic process of **Consumption**, **Assessment**, and **Review**. This workflow drives the analytics engine.
 
-**The Narrative:**
-
-1.  **Discovery**: The student logs in and selects a complex topic (e.g., "Machine Learning").
-2.  **Synthesis**: Overwhelmed by raw content, they ask the AI to **Generate Notes**. The system crunches the data and serves up a concise summary.
-3.  **Practice**: Feeling confident, they generate a **Quiz**. The AI creates questions _on the fly_ based on exactly what they just studied.
-4.  **Validation**: They take an **Exam**, and immediately, the system updates their **Analytics**. They don't just see a score; they see growth.
-
----
-
-## 2. Decision Points (Activity Diagram)
-
-Students don't always follow a linear path. They explore. This diagram maps out the decisions a student makes during a study session. Do they dive deep into notes? Do they test themselves? If they fail, do they review?
-
-It's a continuous loop of **Action -> Feedback -> Improvement**.
-
-### The Study Loop
+### Activity Diagram
 
 ```mermaid
 flowchart TD
-    Start((Start)) --> Login[Login]
-    Login --> SelectTopic[Smart Topic Selection]
-    SelectTopic --> Choice{What's Next?}
+    Start((Session Start)) --> Auth[Authenticate]
+    Auth --> Dashboard[Load Dashboard]
+    Dashboard --> SelectContent[Select Module]
 
-    Choice -->|Need Summary| GenNotes[Generate AI Notes]
-    GenNotes --> ViewNotes[Study Concepts]
-    ViewNotes --> End((Session End))
+    SelectContent --> ActionCheck{User Action}
 
-    Choice -->|Ready to Test| CreateQuiz[Generate AI Quiz]
-    CreateQuiz --> TakeQuiz[Attempt Questions]
-    TakeQuiz --> SubmitQuiz[Submit for Grading]
-    SubmitQuiz --> ViewResult[Analyze Results]
-    ViewResult --> Analysis{Mastered?}
+    ActionCheck -->|Consume| Read[Read/Watch Content]
+    Read --> GenerateNotes[Request AI Summary]
+    GenerateNotes --> Read
 
-    Analysis -->|Yes!| MarkComplete[Mark Topic Complete]
-    Analysis -->|Not Yet| Review[Review Weak Areas]
+    ActionCheck -->|Assess| ConfigQuiz[Configure Assessment]
+    ConfigQuiz --> RequestGen[Request AI Generation]
+    RequestGen --> TakeQuiz[Assessment execution]
+    TakeQuiz --> Submit[Submit Answers]
 
-    MarkComplete --> End
-    Review --> SelectTopic
+    Submit -->|Async| Grade[Auto-Grading]
+    Grade --> UpdateProfile[Update Knowledge Profile]
+    UpdateProfile --> ShowResults[Display Analytics]
+
+    ShowResults --> Remediation{Performance < Threshold?}
+    Remediation -->|Yes| Recommend[AI Recommendations]
+    Remediation -->|No| NextModule[Unlock Next Module]
+
+    Recommend --> Read
+    NextModule --> SelectContent
 ```
 
 ---
 
-## 3. Modes of Engagement (State Machine)
+## 3. Entity State Management (State Machines)
 
-A student isn't just "online". They are in specific mental states. Understanding these states allows us to tailor the interface to their current need.
+To manage complex entity lifecycles, we employ explicit state machines. This is particularly crucial for the **Exam/Assessment** entity to prevent cheating and ensure data consistency.
 
-- **Idle**: Browsing, deciding.
-- **Learning**: Deep focus. We minimize distractions here.
-- **Practicing**: Active recall. Low stakes, high feedback.
-- **Testing**: High stakes. Timed, secure environment.
-- **Completed**: Celebration and reflection.
+### Exam Session State Machine
 
-### User State Transitions
+**States:**
+
+- **Initialized**: Exam created, configuration loaded, but not started.
+- **InProgress**: Timer running, interactions logged. Locked to specific client session.
+- **Submitted**: User finished, awaiting grading.
+- **Graded**: Scoring complete, results available.
+- **Terminated**: Forcefully closed due to timeout or violation.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
+    [*] --> Initialized
 
-    Idle --> Learning : Open Material
-    Learning --> Idle : Close Material
+    Initialized --> InProgress : User Starts
 
-    Learning --> Practicing : specific "Check Knowledge"
-    Practicing --> Learning : Return to Study
-    Practicing --> Testing : Ready for Exam
+    state InProgress {
+        [*] --> Answering
+        Answering --> Saving : Auto-save
+        Saving --> Answering
+    }
 
-    Testing --> Completed : Passed (Score > 70%)
-    Testing --> Learning : Failed (Needs Review)
+    InProgress --> Submitted : User Submits
+    InProgress --> Terminated : Timer Expiry
+    InProgress --> Terminated : Violation Detected
 
-    Completed --> [*]
+    Submitted --> Graded : Async Grading Complete
+    Terminated --> Graded : Partial Grading
 
-    note right of Learning
-        "Consumer Mode"
-        Reading, Watching, Absorbing
-    end note
-
-    note right of Practicing
-        "Active Mode"
-        Low-stress, Instant Feedback
-    end note
+    Graded --> [*]
 ```

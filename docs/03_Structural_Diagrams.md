@@ -1,168 +1,140 @@
-# Structural Design: The Code Backbone
+# Structural Design & Code Organization
 
-Great software isn't just written; it's engineered. For the AI Education Platform, we've adhered to strict **Object-Oriented Programming (OOP)** principles to ensure our code is cleaner, scalable, and easier to maintain.
+This document outlines the static structure of the codebase, focusing on class hierarchies, interface definitions, and package modularity. It emphasizes the application of Object-Oriented Design (OOD) principles, specifically SOLID patterns, to ensure scalability and testability.
 
-### The Blueprint
+## 1. Class Hierarchy and Domain Model
+
+We use a rich domain model pattern. Entities are not just data containers (DTOs); they encapsulate behavior and validation logic.
+
+**Key Design Patterns:**
+
+- **Strategy Pattern**: Used in the `AIService` implementation (`NotesGenerator`, `QuizGenerator`) to allow runtime swapping of diverse generation algorithms or LLM providers.
+- **Template Method**: The `BaseEntity` provides common lifecycle hooks (`onCreate`, `onUpdate`) that subclasses (`User`, `Course`) inherit and extend.
+- **Factory Pattern**: Used to instantiate complex Assessment objects based on configuration parameters.
+
+### Class Diagram
 
 ![Excalidraw Class Diagram](../docs/structural/class_diagram_excalidraw.png)
 
 ```mermaid
 classDiagram
-    %% Abstract & Interface Definitions
+    %% Interface Segregation
     class AIService {
         <<interface>>
-        +generate(input: String): JSON
+        +generate(context: Context): Result
+        +validateOutput(output: JSON): boolean
     }
 
     class BaseEntity {
         <<abstract>>
         +UUID id
-        +Date createdAt
-        +Date updatedAt
+        +Timestamp createdAt
+        +Timestamp updatedAt
+        #prePersist()
+        #preUpdate()
     }
 
-    %% User Hierarchy (Inheritance)
+    %% User Domain
     class User {
-        -String name
         -String email
         -String passwordHash
-        +login()
-        +logout()
+        -Role role
+        +validateCredentials()
+        +updateProfile()
     }
 
     class Student {
-        -StudentProfile profile
-        +enrollCourse(courseId)
-        +viewProgress()
+        -Profile learningProfile
+        +enroll(Course c)
+        +getAnalytics()
     }
 
     class Admin {
-        -String department
-        +createCourse()
-        +manageUsers()
+        -Permissions[] permissions
+        +grantAccess()
+        +auditLogs()
     }
 
     User --|> BaseEntity
     Student --|> User
     Admin --|> User
 
-    %% Core Domain Models
+    %% Content Domain
     class Course {
-        -String title
-        -String description
-        +addLesson(Lesson)
-        +getModules()
+        +UUID id
+        +List~Module~ modules
+        +publish()
+        +archive()
     }
 
-    class Lesson {
-        -String topic
-        -String content
-        +generateAIContent()
+    class AssessmentStrategy {
+        <<interface>>
+        +evaluate(submission: Submission): Score
     }
 
-    class AINotes {
-        -String summary
-        -List~String~ keyPoints
-    }
-
-    class Quiz {
-        -List~Question~ questions
-        +evaluate(answers)
-    }
-
-    class Exam {
-        -int duration
-        +start()
-        +submit()
-    }
-
-    %% AI Implementation (Polymorphism)
+    %% Implementations
     class NotesGenerator {
-        +generate(content): Notes
+        +generate(context): Notes
     }
 
     class QuizGenerator {
-        +generate(topic): Quiz
-    }
-
-    class ExamGenerator {
-        +generate(course): Exam
+        +generate(context): Quiz
     }
 
     NotesGenerator ..|> AIService
     QuizGenerator ..|> AIService
-    ExamGenerator ..|> AIService
 
     %% Relationships
-    Course "1" *-- "*" Lesson : Contains
-    Lesson "1" --> "1" AINotes : Generates
-    Lesson "1" *-- "*" Quiz : Has
-    Course "1" *-- "*" Exam : Includes
-    Student "1" --> "*" Exam : Attempts
+    Course *-- Module : Composition
+    Student --> Course : Association (Enrollment)
 ```
 
 ---
 
-## 1. Class Hierarchy (The "Why")
+## 2. Package Architecture & Dependencies
 
-This isn't just a list of classes. It's a carefully structured family tree of objects.
+The application relies on strict package boundaries to prevent cyclic dependencies and "spaghetti code." We adhere to a **Layered Architecture**:
 
-- **Inheritance (The "Is-A" Relationship)**: We don't repeat code for `Student` and `Admin`. Both inherit from a robust `User` class, sharing core identity logic while keeping their unique powers separate.
-- **Polymorphism (The "Acts-Like" Relationship)**: Our AI is versatile. Whether generating **Notes**, **Quizzes**, or **Exams**, the system treats them all as an `AIService`. This means we can add a "Flashcard Generator" tomorrow without breaking the existing code.
-- **Encapsulation**: Data is sacred. We lock down sensitive fields (like `passwordHash`) and only expose safe methods to interact with them.
+1.  **Presentation Layer (`api`)**: Controllers and DTOs.
+2.  **Business Layer (`service`)**: Core logic and transaction boundaries.
+3.  **Data Access Layer (`repository`)**: Database interaction and query abstractions.
+4.  **Integration Layer (`client`)**: External API clients (OpenAI, Stripe, etc.).
 
----
-
-## 2. Code Organization (Package Diagram)
-
-A messy codebase is a dying codebase. We organize our logic into distinct packages, essentially "neighborhoods" of code that handle specific jobs.
-
-- **`com.edutech.auth`**: The security gatekeepers.
-- **`com.edutech.ai`**: The intelligent core.
-- **`com.edutech.assessment`**: The testing center.
-
-By clearly defining dependencies (the dotted lines), we prevent "spaghetti code" where everything depends on everything else.
-
-### The Package Neighborhoods
+### Package Wiring Diagram
 
 ```mermaid
 packageDiagram
-    package "com.edutech.common" {
-        [Utils]
-        [BaseEntity]
+    package "com.edutech.core" {
+        [Domain Entities]
+        [Repository Interfaces]
     }
 
-    package "com.edutech.auth" {
+    package "com.edutech.service" {
         [AuthService]
-        [UserController]
-    }
-
-    package "com.edutech.course" {
         [CourseService]
-        [LessonManager]
+        [AssessmentService]
     }
 
-    package "com.edutech.ai" {
-        [LLMClient]
-        [PromptEngine]
+    package "com.edutech.api" {
+        [RestControllers]
+        [GraphQLResolvers]
     }
 
-    package "com.edutech.assessment" {
-        [QuizGenerator]
-        [ExamEvaluator]
+    package "com.edutech.infrastructure" {
+        [PostgresRepositoryImpl]
+        [RedisCacheImpl]
+        [OpenAIClient]
     }
 
-    package "com.edutech.analytics" {
-        [ProgressTracker]
-        [ReportGenerator]
-    }
+    %% Dependency Flow (Inversion of Control)
+    "com.edutech.api" ..> "com.edutech.service" : Uses
+    "com.edutech.service" ..> "com.edutech.core" : Uses
 
-    "com.edutech.auth" ..> "com.edutech.common"
-    "com.edutech.course" ..> "com.edutech.common"
-    "com.edutech.ai" ..> "com.edutech.common"
-
-    "com.edutech.assessment" ..> "com.edutech.course"
-    "com.edutech.assessment" ..> "com.edutech.ai"
-    "com.edutech.analytics" ..> "com.edutech.assessment"
-    "com.edutech.analytics" ..> "com.edutech.course"
+    %% Infrastructure implements Core Interfaces
+    "com.edutech.infrastructure" --|> "com.edutech.core" : Implements
 ```
+
+**Architectural Enforcement:**
+
+- Controllers **never** talk directly to Repositories.
+- Domain entities **never** depend on Infrastructure implementation details.
