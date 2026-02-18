@@ -2,36 +2,36 @@
 
 ## ER Diagram
 
-**Tables:**
+This diagram represents the normalized database schema for the AI Education Platform.
 
-- `Users`
-- `Courses`
-- `Lessons`
-- `AINotes`
-- `Quizzes`
-- `Questions`
-- `Exams`
-- `ExamAttempts`
-- `Analytics`
+**Core Entities:**
+
+- **Users**: Central identity table with role-based access.
+- **Courses/Lessons**: Hierarchical content structure.
+- **AI Notes**: Generated content linked to lessons.
+- **Assessments**: Quizzes (practice) and Exams (evaluation).
+- **Analytics**: Performance tracking.
 
 ### Diagram
 
 ```mermaid
 erDiagram
+    %% User Management
     USERS {
         UUID id PK
         string name
         string email
         string password_hash
-        enum role
+        enum role "STUDENT, ADMIN, INSTRUCTOR"
         timestamp created_at
     }
 
+    %% Course Management
     COURSES {
         UUID id PK
         string title
         text description
-        boolean is_published
+        timestamp created_at
     }
 
     LESSONS {
@@ -49,6 +49,7 @@ erDiagram
         timestamp created_at
     }
 
+    %% Assessments
     QUIZZES {
         UUID id PK
         UUID lesson_id FK
@@ -59,15 +60,15 @@ erDiagram
         UUID id PK
         UUID quiz_id FK
         text question_text
-        json options
-        string correct_answer
+        text answer
+        json options "Optional multiple choice"
     }
 
     EXAMS {
         UUID id PK
         UUID course_id FK
         string title
-        int duration_mins
+        int duration_minutes
     }
 
     EXAM_ATTEMPTS {
@@ -79,20 +80,25 @@ erDiagram
         timestamp attempted_at
     }
 
+    %% Analytics
     ANALYTICS {
         UUID id PK
         UUID user_id FK
-        UUID course_id FK
-        float progress_percentage
-        timestamp last_active
+        json progress_data
+        timestamp last_updated
     }
 
+    %% Relationships
     USERS ||--o{ EXAM_ATTEMPTS : takes
-    USERS ||--o{ ANALYTICS : tracks
+    USERS ||--o{ ANALYTICS : has
+
     COURSES ||--|{ LESSONS : contains
     COURSES ||--o{ EXAMS : has
-    LESSONS ||--o| AI_NOTES : generates
+
     LESSONS ||--o{ QUIZZES : has
+    LESSONS ||--o| AI_NOTES : generates
+
     QUIZZES ||--|{ QUESTIONS : contains
+
     EXAMS ||--|{ EXAM_ATTEMPTS : results_in
 ```
