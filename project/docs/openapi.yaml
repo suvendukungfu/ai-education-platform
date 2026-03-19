@@ -1,0 +1,43 @@
+openapi: 3.0.3
+info:
+  title: Axion Intelligence API
+  description: The Galactic Engineering Standard for Adaptive AI Learning.
+  version: 1.0.0
+  contact:
+    name: Axion Sovereign Engineering
+servers:
+  - url: http://localhost:5000/api
+    description: Local Neural Link
+paths:
+  /auth/register:
+    post:
+      summary: Neural Identity Genesis
+      description: Create a new sovereign neural profile.
+      responses:
+        '201':
+          description: Identity Synchronized
+  /auth/login:
+    post:
+      summary: Establish Neural Link
+      description: Authenticate and establish a secure session.
+      responses:
+        '200':
+          description: Link Established
+  /courses:
+    get:
+      summary: Discover Knowledge Paths
+      responses:
+        '200':
+          description: Paths Retrieved
+  /ai/chat:
+    post:
+      summary: Commingle with AI Tutor
+      responses:
+        '200':
+          description: Data Stream Received
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
