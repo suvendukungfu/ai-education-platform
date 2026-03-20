@@ -84,20 +84,25 @@ The core value proposition lies in the AI pipeline. We utilize a two-stage proce
 
 ## Project Structure
 
-We adopt a monorepo structure for ease of development and shared tooling.
+The current working application lives under `project/`. The top-level `frontend/`, `backend/`, and `ai-engine/` folders are not used by the launcher.
 
 ```bash
 ai-education-platform/
-├── ai-engine/          # Python services for RAG and LLM interaction
-├── backend/            # Node.js microservices (Auth, Content, User)
-├── frontend/           # React SPA implementation
-├── database/           # SQL schemas, migrations, and seed data
-├── docs/               # Architecture Decision Records (ADRs) and Diagrams
-│   ├── diagrams/       # Mermaid.js source files
-│   ├── behavioral/     # Sequence and State diagrams
-│   ├── structural/     # Class and Component diagrams
-│   └── er-diagram/     # Entity Relationship diagrams
-└── infrastructure/     # Docker Compose, K8s manifests, Terraform
+├── package.json                    # Root helper scripts
+├── start-platform.sh               # Main local startup entrypoint
+├── project/
+│   ├── frontend/                   # Actual Next.js app
+│   │   ├── package.json
+│   │   ├── .env
+│   │   ├── prisma/
+│   │   │   └── schema.prisma
+│   └── ai-engine/                  # Actual FastAPI app
+│       ├── main.py
+│       ├── requirements.txt
+│       └── venv/
+├── frontend/                       # Legacy copy, not used by startup
+├── backend/                        # Legacy copy, not used by startup
+└── docs/
 ```
 
 ---
@@ -106,38 +111,63 @@ ai-education-platform/
 
 ### Prerequisites
 
-- Docker Desktop & Docker Compose
-- Node.js v18+ (LTS recommended)
+- Node.js 20+
 - Python 3.10+
-- Make (optional, for convenience scripts)
+- `lsof` and `curl` available in your shell
 
 ### Quick Start
 
-1.  **Clone the repository:**
+Run everything from the repository root:
 
-    ```bash
-    git clone https://github.com/suvendukungfu/ai-education-platform.git
-    cd ai-education-platform
-    ```
+```bash
+cd /Users/suvendusahoo/e
+bash ./start-platform.sh
+```
 
-2.  **Initialize Environment:**
-    Copy the example environment file and configure your LLM API keys (OpenAI/Anthropic).
+What the startup script does:
 
-    ```bash
-    cp .env.example .env
-    ```
+1. Uses `project/frontend` as the frontend root
+2. Uses `project/ai-engine` as the backend root
+3. Creates the Python virtual environment if missing
+4. Installs Python dependencies from `project/ai-engine/requirements.txt`
+5. Runs `prisma generate` and `prisma db push` in `project/frontend`
+6. Picks free ports automatically if the defaults are already occupied
+7. Prints the final frontend and backend URLs after both services are reachable
 
-3.  **Start Services:**
-    Use Docker Compose to spin up the full stack including databases.
+### Manual Commands
 
-    ```bash
-    docker-compose up -d --build
-    ```
+If you want to run pieces manually, use these exact directories:
 
-4.  **Verify Deployment:**
-    - **Frontend**: Accessible at `http://localhost:3000`
-    - **API Gateway**: Accessible at `http://localhost:8000`
-    - **API Documentation (Swagger)**: `http://localhost:8000/docs`
+```bash
+# Frontend
+cd /Users/suvendusahoo/e/project/frontend
+npm install
+npm run prisma:generate
+npm run prisma:dbpush
+npm run dev -- --hostname 127.0.0.1 --port 3000
+
+# AI engine
+cd /Users/suvendusahoo/e/project/ai-engine
+python3 -m venv venv
+./venv/bin/pip install -r requirements.txt
+./venv/bin/python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+### Prisma
+
+Prisma is configured in the actual frontend app:
+
+- Schema: `project/frontend/prisma/schema.prisma`
+- Database: `/Users/suvendusahoo/e/project/frontend/dev.db`
+
+Useful commands:
+
+```bash
+cd /Users/suvendusahoo/e/project/frontend
+npm run prisma:validate
+npm run prisma:generate
+npm run prisma:dbpush
+```
 
 ---
 

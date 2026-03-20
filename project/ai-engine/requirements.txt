@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+pypdf2
+langchain
+langchain-openai
+qdrant-client
+openai
+pypdf
+python-multipart
