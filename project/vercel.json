@@ -18,5 +18,9 @@
   ],
   "env": {
     "NEXT_PUBLIC_API_URL": "https://axion-platform.vercel.app/api"
-  }
+  },
+  "analytics": true,
+  "speedInsights": true,
+  "cleanUrls": true,
+  "trailingSlash": false
 }
