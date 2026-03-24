@@ -20,13 +20,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Axion Intelligence | AI-First Learning Platform",
-  description: "Next-generation educational experience with personal AI tutors, gamified mastery, and neural path tracking.",
+  title: "Axion Intelligence | The Adaptive AI Learning Singularity",
+  description: "Experience the future of education with Axion. High-fidelity RAG orchestration, NeuralHUD telemetry, and cinematic adaptive learning paths built for the next generation of engineers.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Axion",
+    title: "Axion Singularity",
   },
 };
 
