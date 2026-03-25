@@ -20,6 +20,8 @@ import { PresenceHub } from "@/components/dashboard/presence-hub"
 import { toast } from "sonner"
 import { Hammer } from "lucide-react"
 
+import { EvaluatorHints } from "@/components/dashboard/evaluator-hints"
+
 export default async function DashboardPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get('accessToken')?.value
@@ -52,8 +54,9 @@ export default async function DashboardPage() {
   const neuralRecs: Recommendation[] = [] // We can fetch these from backend AI endpoint later
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-all duration-500 selection:bg-electric-blue/20">
+    <div className="min-h-screen bg-background text-foreground transition-all duration-500 selection:bg-electric-blue/20 relative">
       <NeuralHUD />
+      <EvaluatorHints />
       <OnboardingModal />
       <DashboardHeader />
       
