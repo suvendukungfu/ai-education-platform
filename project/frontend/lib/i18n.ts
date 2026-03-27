@@ -1,35 +1,28 @@
-// Accessibility and i18n scaffolding for Axion Intelligence
+"use client"
 
-export const defaultLocale = "en"
-export const locales = ["en", "es", "fr", "ja", "zh"] as const
+import { useState, useCallback, useEffect } from "react"
+import en from "../locales/en.json"
+import es from "../locales/es.json"
 
-export type Locale = (typeof locales)[number]
+const locales: Record<string, any> = { en, es }
 
-export const dictionaries = {
-  en: {
-    hero: {
-      title: "Learn faster. Play harder.",
-      subtitle: "Axion turns any subject into an addictive, personalized game."
-    },
-    dashboard: {
-      welcome: "Welcome Back",
-      daily_quest: "Daily Quests",
-      xp: "XP"
+export function useI18n() {
+  const [lang, setLang] = useState("en")
+
+  const t = useCallback((key: string) => {
+    const keys = key.split(".")
+    let value = locales[lang]
+    
+    for (const k of keys) {
+      value = value?.[k]
     }
-  },
-  es: {
-    hero: {
-      title: "Aprenda más rápido. Juegue más duro.",
-      subtitle: "Axion convierte cualquier tema en un juego adictivo y personalizado."
-    },
-    dashboard: {
-      welcome: "Bienvenido de nuevo",
-      daily_quest: "Misiones diarias",
-      xp: "Puntos de exp"
-    }
+    
+    return value || key
+  }, [lang])
+
+  const toggleLang = () => {
+    setLang(prev => prev === "en" ? "es" : "en")
   }
-}
 
-export function getDictionary(locale: Locale) {
-  return (dictionaries as Record<string, any>)[locale] ?? dictionaries[defaultLocale]
+  return { t, lang, toggleLang }
 }
