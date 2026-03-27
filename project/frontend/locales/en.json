@@ -1,0 +1,21 @@
+{
+  "common": {
+    "welcome": "Welcome back",
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "settings": "Settings",
+    "logout": "Logout",
+    "neural_sync": "Neural Sync Authorized"
+  },
+  "dashboard": {
+    "neural_hud": "NeuralHUD",
+    "learning_progress": "Learning Progress",
+    "active_paths": "Active Learning Paths",
+    "view_all": "Explore More"
+  },
+  "ai": {
+    "ask_tutor": "Ask your AI Tutor...",
+    "thinking": "Neural Engine Thinking...",
+    "streaming": "Syncing Data Streams..."
+  }
+}

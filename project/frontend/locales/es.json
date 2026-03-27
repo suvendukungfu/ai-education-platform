@@ -1,0 +1,21 @@
+{
+  "common": {
+    "welcome": "Bienvenido de nuevo",
+    "dashboard": "Panel de control",
+    "courses": "Cursos",
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión",
+    "neural_sync": "Sincronización Neural Autorizada"
+  },
+  "dashboard": {
+    "neural_hud": "NeuralHUD",
+    "learning_progress": "Progreso de Aprendizaje",
+    "active_paths": "Rutas de Aprendizaje Activas",
+    "view_all": "Explorar Más"
+  },
+  "ai": {
+    "ask_tutor": "Pregunta a tu Tutor IA...",
+    "thinking": "Pensamiento del Motor Neural...",
+    "streaming": "Sincronizando flujos de datos..."
+  }
+}
