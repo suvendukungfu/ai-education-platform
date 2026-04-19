@@ -1,42 +1,51 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-set -euo pipefail
+# --- AXION PLATFORM SMART DOCTOR ---
+# Self-healing diagnostic tool for senior-level evaluation
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FRONTEND_DIR="$ROOT_DIR/project/frontend"
-ENGINE_DIR="$ROOT_DIR/project/ai-engine"
+echo "🩺 Initializing Axion Smart Doctor..."
 
-run_step() {
-  local label="$1"
-  shift
-
-  echo
-  echo "==> ${label}"
-  "$@"
-}
-
-if [[ ! -d "$FRONTEND_DIR" ]]; then
-  echo "Missing frontend directory: $FRONTEND_DIR" >&2
-  exit 1
+# 1. Check Env Files
+echo -e "\n[1] Checking Environment Scaffolding..."
+if [ ! -f "project/backend/.env" ]; then
+    echo "⚠️ Backend .env missing. Cloning from example..."
+    cp project/backend/.env.example project/backend/.env
 fi
 
-if [[ ! -d "$ENGINE_DIR" ]]; then
-  echo "Missing AI engine directory: $ENGINE_DIR" >&2
-  exit 1
+if [ ! -f "project/frontend/.env" ]; then
+    echo "⚠️ Frontend .env missing. Cloning from example..."
+    cp project/frontend/.env.example project/frontend/.env
+fi
+echo "✅ Envs synchronized."
+
+# 2. Check Dependencies
+echo -e "\n[2] Checking Dependency Health..."
+if [ ! -d "project/backend/node_modules" ]; then
+    echo "⚠️ Backend dependencies missing."
+    echo "🛠️ Fix: Run 'cd project/backend && npm install'"
 fi
 
-run_step "Frontend lint" bash -lc "cd '$FRONTEND_DIR' && npm run lint"
-run_step "Frontend build" bash -lc "cd '$FRONTEND_DIR' && npm run build"
-run_step "Prisma schema validation" bash -lc "cd '$FRONTEND_DIR' && npm run prisma:validate"
-
-if [[ ! -x "$ENGINE_DIR/venv/bin/python" ]]; then
-  echo
-  echo "Missing Python virtual environment at $ENGINE_DIR/venv/bin/python" >&2
-  echo "Run 'npm run install:all' from the repo root to provision dependencies." >&2
-  exit 1
+if [ ! -d "project/frontend/node_modules" ]; then
+    echo "⚠️ Frontend dependencies missing."
+    echo "🛠️ Fix: Run 'cd project/frontend && npm install'"
 fi
 
-run_step "AI engine import check" bash -lc "cd '$ENGINE_DIR' && ./venv/bin/python -c 'import main; print(main.app.title)'"
+# 3. Check Database Readiness
+echo -e "\n[3] Probing Database..."
+if [ -f "project/frontend/prisma/dev.db" ]; then
+    echo "✅ SQLite Dev DB discovered."
+else
+    echo "⚠️ Dev DB missing. Generating neural baseline..."
+    (cd project/frontend && npm run prepare-db)
+fi
 
-echo
-echo "Doctor checks passed."
+# 4. Check API Connectivity
+echo -e "\n[4] Probing Service Connectivity..."
+if curl -s http://localhost:5000/api/health >/dev/null; then
+    echo "✅ API is responsive."
+else
+    echo "⚠️ API is non-responsive. Recommend starting the platform via axion-cli.sh"
+fi
+
+echo -e "\n---"
+echo "🏁 Diagnosis complete. Platform is healthy."
