@@ -1,21 +1,30 @@
-import type React from "react"
+"use client"
+
 import { Navigation } from "@/components/landing/navigation"
+import { GalaxyBackground } from "@/components/landing/galaxy-background"
 import { HeroSection } from "@/components/landing/hero-section"
+import { StorySection } from "@/components/landing/story-section"
 import { FeaturesSection } from "@/components/landing/features-section"
-import { DemoSection } from "@/components/landing/demo-section"
 import { HowItWorksSection } from "@/components/landing/how-it-works-section"
+import { CallToActionSection } from "@/components/landing/cta-section"
 import { Footer } from "@/components/landing/footer"
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary">
+    <div className="min-h-screen bg-black text-white antialiased selection:bg-electric-blue/30 selection:text-electric-blue overflow-x-hidden">
       <Navigation />
-      <main>
+      
+      {/* Immersive 3D Backdrop */}
+      <GalaxyBackground />
+
+      <main className="relative">
         <HeroSection />
-        <FeaturesSection />
+        <StorySection />
         <HowItWorksSection />
-        <DemoSection />
+        <FeaturesSection />
+        <CallToActionSection />
       </main>
+
       <Footer />
     </div>
   )

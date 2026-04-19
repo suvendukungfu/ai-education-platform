@@ -8,3 +8,5 @@ qdrant-client
 openai
 pypdf
 python-multipart
+langchain-community
+langchain-qdrant

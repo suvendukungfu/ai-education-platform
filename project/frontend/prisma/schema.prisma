@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -25,8 +24,82 @@ model User {
   enrollments   Enrollment[]
   chatHistories ChatHistory[]
   
+  // Gamification
+  xp            Int       @default(0)
+  level         Int       @default(1)
+  streak        Int       @default(0)
+  bestStreak    Int       @default(0)
+  lastActiveAt  DateTime?
+  badges        UserBadge[]
+
+  // Viral Growth
+  referralCode  String    @unique @default(cuid())
+  referredById  String?
+  referredBy    User?     @relation("Referrals", fields: [referredById], references: [id])
+  referrals     User[]    @relation("Referrals")
+
+  // Monetization
+  subscriptionTier String @default("FREE") // 'FREE', 'PRO', 'ELITE'
+  stripeCustomerId String?
+
+  // Adaptive Learning (AI Persistence)
+  weakTopics    String?   // JSON string of topics needing focus
+  progressTarget Float    @default(0.5) // Adaptive target adjustment
+
+  attempts      QuizAttempt[]
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // 'COURSE_COMPLETION', 'STREAK_7', 'XP_1000', etc.
+  name      String
+  icon      String?
+  earnedAt  DateTime @default(now())
+
+  @@unique([userId, type])
+}
+
+model Quiz {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  moduleId    String
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  questions   Question[]
+  attempts    QuizAttempt[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  quizId      String
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  text        String
+  options     String   // JSON string of options
+  correctAnswer String
+  explanation String?
+  topic       String?  // For adaptive tracking
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score     Int
+  passed    Boolean
+  feedback  String?  // AI-generated feedback
+  
+  createdAt DateTime @default(now())
 }
 
 model Account {
@@ -36,6 +109,7 @@ model Account {
   provider           String
   providerAccountId  String
   refresh_token      String?
+  refresh_token_expires_in Int?
   access_token       String?
   expires_at         Int?
   token_type         String?
@@ -63,6 +137,7 @@ model Course {
   thumbnail   String?
   published   Boolean  @default(false)
   instructor  String?
+  category    String?  @default("AI & Engineering")
   
   modules     Module[]
   enrollments Enrollment[]
@@ -79,6 +154,7 @@ model Module {
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   
   lessons   Lesson[]
+  quizzes   Quiz[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -9,9 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { AdminLink } from "@/components/auth/admin-link"
 import { BookOpen, Bell, Search, Menu } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase/client"
-import { signOut } from "@/lib/auth/auth-helpers"
-import { isAdminEmail } from "@/lib/auth/admin-helpers"
+import { useAuth } from "@/providers/auth-provider"
 import type { UserRole } from "@/lib/types"
 
 type MenuItem = { label: string; href?: string; action?: () => Promise<void> | void }
@@ -19,39 +17,14 @@ type MenuSection = { items: MenuItem[] }
 
 export function DashboardHeader() {
   const router = useRouter()
+  const { user, logout } = useAuth()
+  const userName = user?.name || "Learner"
+  const userEmail = user?.email || "user@axion.ai"
+  const avatarUrl = user?.image || null
+  const role = user?.role?.toLowerCase() || "student"
   const [menuOpen, setMenuOpen] = useState(false)
-  const [userName, setUserName] = useState("Learner")
-  const [userEmail, setUserEmail] = useState("user@aieducation.com")
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [role, setRole] = useState<UserRole>("student")
-  const [adminOverride, setAdminOverride] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const supabase = createClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (!user) {
-          return
-        }
-
-        const metadataRole = (user.user_metadata?.role as UserRole) || "student"
-        const displayName = user.user_metadata?.name || user.email?.split("@")[0] || "AI Learner"
-        setUserName(displayName)
-        setUserEmail(user.email || "user@aieducation.com")
-        setAvatarUrl(user.user_metadata?.avatar_url ?? null)
-        setRole(metadataRole)
-        setAdminOverride(user.email ? isAdminEmail(user.email) : false)
-      } catch (error) {
-        console.error("Failed to fetch user", error)
-      }
-    }
-
-    loadUser()
-  }, [])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -81,9 +54,8 @@ export function DashboardHeader() {
   }
 
   const handleLogout = async () => {
-    await signOut()
+    logout()
     router.push("/login")
-    router.refresh()
   }
 
   const studentSections: MenuSection[] = [
@@ -140,14 +112,12 @@ export function DashboardHeader() {
   ]
 
   const menuSections = useMemo(() => {
-    if (adminOverride) {
-      return adminSections
-    }
+    if (role === 'admin') return adminSections
     if (role === "faculty") {
       return facultySections
     }
     return studentSections
-  }, [adminOverride, role])
+  }, [role])
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -198,7 +168,7 @@ export function DashboardHeader() {
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {userName
                       .split(" ")
-                      .map((n) => n[0])
+                      .map((n: string) => n[0])
                       .join("")
                       .slice(0, 2)
                       .toUpperCase() || "AI"}

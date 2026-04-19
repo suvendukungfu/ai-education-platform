@@ -2,12 +2,16 @@
 
 set -euo pipefail
 
+export PATH="/opt/homebrew/bin:$PATH"
+export npm_config_cache=/tmp/npm-cache
+export PRISMA_TELEMETRY_OPT_OUT=1
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FRONTEND_DIR="$ROOT_DIR/project/frontend"
 ENGINE_DIR="$ROOT_DIR/project/ai-engine"
 ENGINE_VENV_DIR="$ENGINE_DIR/venv"
-ENGINE_PYTHON="$ENGINE_VENV_DIR/bin/python"
-ENGINE_PIP="$ENGINE_VENV_DIR/bin/pip"
+ENGINE_PYTHON="$ENGINE_VENV_DIR/bin/python3"
+ENGINE_PIP="$ENGINE_VENV_DIR/bin/pip3"
 FRONTEND_DB_FILE="$FRONTEND_DIR/dev.db"
 FRONTEND_DB_URL="file:$FRONTEND_DB_FILE"
 
@@ -108,11 +112,17 @@ fi
 echo "Installing AI engine Python dependencies..."
 "$ENGINE_PIP" install -r "$ENGINE_DIR/requirements.txt" >/dev/null
 
+echo "Preparing SQLite dev database..."
+(cd "$FRONTEND_DIR" && DATABASE_URL="$FRONTEND_DB_URL" node ./scripts/prepare-dev-db.js)
+
 echo "Generating Prisma client..."
-(cd "$FRONTEND_DIR" && DATABASE_URL="$FRONTEND_DB_URL" npm run prisma:generate >/dev/null)
+(cd "$FRONTEND_DIR" && DATABASE_URL="$FRONTEND_DB_URL" TMPDIR=/tmp/prisma-tmp PRISMA_CACHE_DIR=/tmp/prisma-cache PRISMA_BINARY_CACHE_DIR=/tmp/prisma-cache HOME=/tmp/fake-home npm exec --yes -- prisma generate)
 
 echo "Applying Prisma schema to SQLite..."
-(cd "$FRONTEND_DIR" && DATABASE_URL="$FRONTEND_DB_URL" npm run prisma:dbpush >/dev/null)
+(cd "$FRONTEND_DIR" && DATABASE_URL="$FRONTEND_DB_URL" TMPDIR=/tmp/prisma-tmp PRISMA_CACHE_DIR=/tmp/prisma-cache PRISMA_BINARY_CACHE_DIR=/tmp/prisma-cache HOME=/tmp/fake-home npm exec --yes -- prisma db push)
+
+echo "Seeding database with demo data..."
+(cd "$FRONTEND_DIR" && DATABASE_URL="$FRONTEND_DB_URL" TMPDIR=/tmp/prisma-tmp PRISMA_CACHE_DIR=/tmp/prisma-cache PRISMA_BINARY_CACHE_DIR=/tmp/prisma-cache HOME=/tmp/fake-home npm exec --yes -- prisma db seed)
 
 echo "Starting AI engine..."
 (

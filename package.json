@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "doctor": "bash ./scripts/doctor.sh",
     "dev:frontend": "cd project/frontend && npm run dev",
     "dev:engine": "cd project/ai-engine && ./venv/bin/python main.py",
     "dev": "bash ./start-platform.sh",

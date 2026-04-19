@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # 🗄️ Primary Data Persistence
+  postgres:
+    image: postgres:15-alpine
+    container_name: axion-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-axion_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-axion_secret}
+      POSTGRES_DB: axion_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - axion_data:/var/lib/postgresql/data
+
+  # ⚡ AI Reasoning Cache
+  redis:
+    image: redis:7-alpine
+    container_name: axion-cache
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 🧠 AI Orchestrator (FastAPI)
+  ai-engine:
+    build: ./ai-engine
+    container_name: axion-ai-engine
+    restart: always
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+
+  # ⚙️ Clean Architecture Backend (Node)
+  backend:
+    build: ./backend
+    container_name: axion-backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-axion_admin}:${DB_PASSWORD:-axion_secret}@postgres:5432/axion_platform
+      - AI_ENGINE_URL=http://ai-engine:8000
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - postgres
+      - ai-engine
+    ports:
+      - "5000:5000"
+
+  # 🌐 High-Fidelity Frontend (Next.js)
+  frontend:
+    build: ./frontend
+    container_name: axion-frontend
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:5000/api
+      - NEXTAUTH_SECRET=${JWT_SECRET}
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  axion_data:

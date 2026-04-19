@@ -13,6 +13,7 @@ import Link from "next/link"
 import db from "@/lib/db"
 import { auth } from "@/auth"
 import { notFound } from "next/navigation"
+import { NeuralPathCurriculum } from "@/components/course/neural-path"
 
 export default async function CourseDetailPage({ params }: { params: { id: string } }) {
   const session = await auth()
@@ -90,34 +91,12 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
                 <TabsTrigger value="reviews" className="h-10 px-6 data-[state=active]:bg-background">Reviews</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="curriculum" className="mt-8 space-y-6">
-                {course.modules.map((module, idx) => (
-                  <Card key={module.id} className="border-border/30 bg-card/30 overflow-hidden">
-                    <CardHeader className="bg-muted/30 py-4 flex flex-row items-center justify-between border-b border-border/20">
-                      <div className="space-y-1">
-                         <span className="text-[10px] font-black uppercase text-primary/70 tracking-tighter opacity-70">Module {idx + 1}</span>
-                         <CardTitle className="text-lg">{module.title}</CardTitle>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-30" />
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="divide-y divide-border/20">
-                        {module.lessons.map((lesson) => (
-                          <div key={lesson.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-all group">
-                             <div className="flex items-center gap-3">
-                                <PlayCircle className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                                <span className="text-sm font-medium">{lesson.title}</span>
-                             </div>
-                             <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
-                                <Clock className="w-3 h-3" />
-                                15m
-                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <TabsContent value="curriculum" className="mt-8">
+                <NeuralPathCurriculum 
+                  modules={course.modules} 
+                  courseId={courseId} 
+                  isEnrolled={isEnrolled} 
+                />
               </TabsContent>
             </Tabs>
           </div>

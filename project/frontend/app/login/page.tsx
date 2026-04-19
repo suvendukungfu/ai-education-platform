@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { useAuth } from "@/providers/auth-provider"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,7 @@ import { toast } from "sonner"
 import { motion } from "framer-motion"
 
 export default function LoginPage() {
-  const router = useRouter()
+  const { login } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -25,22 +25,11 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError("Invalid email or password. Please try again.")
-        toast.error("Authentication failed")
-      } else {
-        toast.success("Welcome back!")
-        router.push("/dashboard")
-        router.refresh()
-      }
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
+      await login({ email, password })
+      toast.success("Welcome back!")
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Invalid email or password. Please try again.")
+      toast.error("Authentication failed")
     } finally {
       setLoading(false)
     }
@@ -61,7 +50,7 @@ export default function LoginPage() {
             </div>
             <span className="text-2xl font-bold tracking-tight">AI Education</span>
           </Link>
-          <p className="text-muted-foreground text-center">Empowering the next generation of engineers</p>
+          <p className="text-muted-foreground text-center">Join the living knowledge engine.</p>
         </div>
 
         <Card className="border-border/50 shadow-2xl backdrop-blur-sm bg-card/80">

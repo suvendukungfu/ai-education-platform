@@ -1,6 +1,9 @@
 "use client"
 
-import { use } from "react"
+import { use, useEffect, useState } from "react"
+import api from "@/lib/axios"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { TutorChat } from "@/components/tutor/tutor-chat"
@@ -12,21 +15,27 @@ import { Badge } from "@/components/ui/badge"
 export default function TutorPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { id } = use(params)
+  const [course, setCourse] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  const mockCourse = {
-    id: id,
-    title: "Introduction to Machine Learning",
-    description: "Foundational concepts and algorithms for deep neural networks.",
-    instructor: "Dr. Elena Smith",
-    progress: 65,
-    modules: [
-      { id: "m1", title: "Linear Regression", status: "completed" },
-      { id: "m2", title: "Logistic Regression", status: "completed" },
-      { id: "m3", title: "Neural Networks: Backprop", status: "current" },
-      { id: "m4", title: "CNNs & RNNs", status: "upcoming" },
-      { id: "m5", title: "Generative AI Foundations", status: "upcoming" }
-    ]
-  }
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        const { data } = await api.get(`/courses/${id}`)
+        setCourse(data)
+      } catch (error) {
+        toast.error("Failed to sync neural path.")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCourse()
+  }, [id])
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-electric-blue" /></div>
+  if (!course) return <div className="min-h-screen flex items-center justify-center text-xl font-bold">Neural Path Not Found</div>
+
+  const progress = 0 // Calculate based on lessons completed
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -39,10 +48,10 @@ export default function TutorPage({ params }: { params: Promise<{ id: string }> 
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight">{mockCourse.title}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{course.title}</h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px] py-0 px-2">Level: Core</Badge>
-                <span>Instructor: {mockCourse.instructor}</span>
+                <span>Instructor: {course.instructor || "AI Tutor"}</span>
               </div>
             </div>
           </div>
@@ -67,29 +76,29 @@ export default function TutorPage({ params }: { params: Promise<{ id: string }> 
                 Course Contents
               </CardTitle>
               <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-primary" style={{ width: `${mockCourse.progress}%` }} />
+                <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1 font-medium">{mockCourse.progress}% Syllabus Mastered</p>
+              <p className="text-[10px] text-muted-foreground mt-1 font-medium">{progress}% Syllabus Mastered</p>
             </CardHeader>
             <CardContent className="p-2 overflow-y-auto">
-              {mockCourse.modules.map((m) => (
+              {course.modules?.map((m: any, idx: number) => (
                 <div 
                   key={m.id} 
                   className={`flex items-center gap-3 p-3 rounded-lg text-xs transition cursor-pointer hover:bg-muted/50 ${
-                    m.status === "current" ? "bg-primary/5 text-primary border-r-2 border-primary" : "text-muted-foreground"
+                    idx === 0 ? "bg-primary/5 text-primary border-r-2 border-primary" : "text-muted-foreground"
                   }`}
                 >
                   <div className={`w-2 h-2 rounded-full ${
-                    m.status === "completed" ? "bg-accent" : m.status === "current" ? "bg-primary" : "bg-muted"
+                    idx === 0 ? "bg-primary" : "bg-muted"
                   }`} />
-                  <span className={m.status === "current" ? "font-semibold" : ""}>{m.title}</span>
+                  <span className={idx === 0 ? "font-semibold" : ""}>{m.title}</span>
                 </div>
               ))}
               
               <div className="mt-4 p-4 rounded-lg bg-accent/5 border border-accent/10 space-y-2">
                 <p className="text-[10px] font-bold text-accent uppercase tracking-wider">AI Insight</p>
                 <p className="text-xs text-muted-foreground leading-relaxed italic">
-                  "You're making great progress in Logistic Regression as shown in your last 3 chat sessions."
+                  "Neural path is stabilized. Continue your current session to maintain cognitive resonance."
                 </p>
               </div>
             </CardContent>

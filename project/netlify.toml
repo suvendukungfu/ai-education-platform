@@ -1,0 +1,22 @@
+[build]
+  base = "frontend"
+  publish = ".next"
+  command = "npm run build"
+
+[build.environment]
+  NEXT_USE_NETLIFY_EDGE = "true"
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  node_version = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  NEXT_PUBLIC_API_URL = "https://axion-backend.onrender.com/api" # Auto-linked to Render backend

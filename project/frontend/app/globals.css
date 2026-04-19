@@ -80,15 +80,15 @@
   --font-sans: "Geist", "Geist Fallback";
   --font-mono: "Geist Mono", "Geist Mono Fallback";
 
-  /* Brand Colors - peerlist.io inspired */
-  --color-brand: oklch(0.15 0 0);
-  --color-brand-hover: oklch(0.2 0 0);
-  --color-accent: oklch(0.5 0.2 150);
-  --color-accent-secondary: oklch(0.6 0.15 60);
-  --color-error: oklch(0.577 0.245 27.325);
-  --color-success: oklch(0.6 0.2 150);
+  /* Brand Colors - Axion Premium */
+  --color-electric-blue: oklch(0.6 0.25 250);
+  --color-violet-glow: oklch(0.6 0.25 300);
+  --color-brand: var(--color-electric-blue);
+  --color-brand-hover: oklch(0.5 0.25 250);
+  --color-accent: var(--color-violet-glow);
+  --color-success: oklch(0.7 0.2 150);
   --color-warning: oklch(0.7 0.15 60);
-  --color-info: oklch(0.5 0.2 250);
+  --color-info: oklch(0.6 0.2 230);
 
   /* Surface Colors */
   --color-surface: oklch(0.98 0 0);

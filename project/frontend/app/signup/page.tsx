@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useAuth } from "@/providers/auth-provider"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +13,7 @@ import { toast } from "sonner"
 import { motion } from "framer-motion"
 
 export default function SignupPage() {
-  const router = useRouter()
+  const { register } = useAuth()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,21 +29,11 @@ export default function SignupPage() {
     setError(null)
 
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        toast.success("Account created successfully! Please sign in.")
-        router.push("/login")
-      } else {
-        const errorText = await response.text()
-        setError(errorText || "Registration failed. Try again.")
-      }
-    } catch (err) {
-      setError("An unexpected error occurred.")
+      await register(formData)
+      toast.success("Account created successfully!")
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Registration failed. Try again.")
+      toast.error("Signup failed")
     } finally {
       setLoading(false)
     }
@@ -63,13 +54,13 @@ export default function SignupPage() {
             </div>
             <span className="text-2xl font-bold tracking-tight">AI Education</span>
           </Link>
-          <p className="text-muted-foreground">Start your intelligent learning journey today.</p>
+          <p className="text-muted-foreground">Join the living knowledge engine.</p>
         </div>
 
         <Card className="border-border/50 shadow-2xl backdrop-blur-sm bg-card/85">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-            <CardDescription className="text-center"> Join our platform of experts and learners</CardDescription>
+            <CardDescription className="text-center"> Initialize your neural sync and start evolving.</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">

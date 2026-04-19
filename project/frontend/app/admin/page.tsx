@@ -90,9 +90,39 @@ export default async function AdminDashboardPage() {
               <TabsTrigger value="users" className="px-6 h-9 data-[state=active]:bg-background rounded-lg text-xs font-bold">Node Management</TabsTrigger>
            </TabsList>
            
-           <TabsContent value="overview" className="mt-6">
+            <TabsContent value="overview" className="mt-6">
               <div className="grid lg:grid-cols-3 gap-8">
-                 <div className="lg:col-span-2 space-y-6">
+                 <div className="lg:col-span-2 space-y-8">
+                    {/* Neural Connectivity Chart (NEW) */}
+                    <Card className="border-border/50 bg-card/20 shadow-none overflow-hidden rounded-2xl p-8 relative group">
+                       <div className="flex items-center justify-between mb-8">
+                          <div>
+                             <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-primary" /> Neural Connectivity
+                             </CardTitle>
+                             <CardDescription className="text-xs">Real-time edge node synchronization frequency.</CardDescription>
+                          </div>
+                          <Badge variant="outline" className="animate-pulse bg-primary/5 border-primary/20 text-primary">LIVE SYNC</Badge>
+                       </div>
+                       
+                       <div className="h-32 flex items-end gap-1 px-2">
+                          {[40, 70, 45, 90, 65, 80, 50, 85, 40, 75, 45, 95, 60, 80, 55, 90, 45, 70].map((h, i) => (
+                             <div 
+                                key={i} 
+                                className="flex-1 bg-primary/20 rounded-t-sm hover:bg-primary transition-all duration-500 cursor-crosshair group/bar relative"
+                                style={{ height: `${h}%` }}
+                             >
+                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover/bar:opacity-100 transition-opacity bg-black text-[8px] px-1 rounded border border-white/10">{h}ms</div>
+                             </div>
+                          ))}
+                       </div>
+                       <div className="flex justify-between mt-4 text-[8px] font-black uppercase tracking-widest opacity-30">
+                          <span>00:00 UTC</span>
+                          <span>SYNCHRONIZED NODES (128/128)</span>
+                          <span>04:46 UTC</span>
+                       </div>
+                    </Card>
+
                     <Card className="border-border/50 bg-card/20 shadow-none overflow-hidden rounded-2xl">
                        <CardHeader className="pb-2">
                           <CardTitle className="text-lg font-bold">Recent Course Uploads</CardTitle>
@@ -131,6 +161,30 @@ export default async function AdminDashboardPage() {
                              Manage Entire Fleet <ArrowRight className="w-3 h-3 ml-2" />
                           </Button>
                        </div>
+                    </Card>
+
+                    {/* System Audit Log (NEW) */}
+                    <Card className="border-border/50 bg-card/20 shadow-none rounded-2xl">
+                       <CardHeader className="pb-4">
+                          <CardTitle className="text-sm font-black uppercase tracking-[0.2em]">System Audit Log</CardTitle>
+                       </CardHeader>
+                       <CardContent className="p-0">
+                          <div className="divide-y divide-border/10 pb-4">
+                             {[
+                                { msg: "Course 'GenAI Masterclass' node state changed to PUBLISHED", time: "2m ago", type: "UPDATE" },
+                                { msg: "New Administrative authentication from 192.168.1.1", time: "15m ago", type: "SECURITY" },
+                                { msg: "Automated database optimization cycle completed", time: "1h ago", type: "SYSTEM" }
+                             ].map((log, i) => (
+                                <div key={i} className="px-6 py-4 flex items-center justify-between group">
+                                   <div className="flex items-center gap-4">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${log.type === 'SECURITY' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-primary'}`} />
+                                      <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">{log.msg}</span>
+                                   </div>
+                                   <span className="text-[10px] font-black tabular-nums opacity-30 group-hover:opacity-100">{log.time}</span>
+                                </div>
+                             ))}
+                          </div>
+                       </CardContent>
                     </Card>
                  </div>
                  
