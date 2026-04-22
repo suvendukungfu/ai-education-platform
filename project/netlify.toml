@@ -13,10 +13,7 @@
 [functions]
   node_version = "20"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+
 
 [context.production.environment]
   NEXT_PUBLIC_API_URL = "https://axion-backend.onrender.com/api" # Auto-linked to Render backend
