@@ -50,3 +50,4 @@ dist/
 coverage/
 logs
 *.log
+project/backend/.env
